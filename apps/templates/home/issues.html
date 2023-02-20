@@ -1,0 +1,184 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Profile {% endblock %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <!-- [ Main Content ] start -->
+  <div class="pcoded-main-container">
+    <div class="pcoded-wrapper">
+
+      <div class="pcoded-content">
+        <div class="pcoded-inner-content">
+          <div class="main-body">
+            <div class="page-wrapper">
+              <!-- [ Main Content ] start -->
+
+              {% if user_role == "admin" %}
+                <div class="card StudentsWithoutAmoToAssign">
+                  <div class="card-header">
+                    <h5>Потрібно назначити. Студенти без АМО. </h5>
+                  </div>
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in to_be_assigned_amo_id.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{{ value.description }}</pre>
+                            </td>
+                            <td>
+                              <a href="/assign_issue/{{ key }}" class="label theme-bg text-white f-16">Перенаправити
+                                незбіжність</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+
+
+              {% if user_role == "admin" %}
+                <div class="card StudentsWithoutAmoToCheck">
+                  <div class="card-header">
+                    <h5>На перевірку. Студенти без АМО.
+                      <button type="button" class="btn btn-warning">Всього незбіжностей: <span
+                              class="badge badge-light">{{ amo_to_check_total }}</span></button>
+                      {{ amo_to_check_total }}</h5>
+                  </div>
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in no_amo_id_to_check.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{{ value.description }}</pre>
+                            </td>
+                            <td>
+                              <a href="/resolve_amo_issue/{{ key }}" class="label theme-bg text-white f-16">Зарахувати
+                                без змін</a>
+                              <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Закрити без
+                                змін</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+              <div class="card StudentsWithoutAmo">
+                <div class="card-header">
+                  <h5>Студенти без АМО. Всього незбіжностей: {{ total_issues }}</h5>
+                </div>
+                <div class="card-block px-0 py-3">
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <tbody>
+                      {% for key, value in no_amo_id.items %}
+                        <tr class="unread">
+                          <td>
+                            <h5 class="mb-1">{{ value.header }}</h5>
+                            <h6>Номер незбіжності {{ key }}</h6>
+
+                            <span>{{ value.description }}</span>
+                          </td>
+                          <td><a href="/add_student_amo_ref/{{ key }}" class="label theme-bg text-white f-16">Додати
+                            дані</a>
+                            <a href="/close_no_actions_issue_reason/{{ key }}" class="label theme-bg text-white f-16">Зарахувати
+                              без змін</a>
+                            <a href="/close_issue_reason/{{ key }}" class="label theme-bg2 text-white f-16">Закрити без
+                              змін</a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="card UnknownLocation">
+                <div class="card-header">
+                  <h5>Групи без локації. Всього незбіжностей: {{ unknown_location_amount }}</h5>
+                </div>
+                <div class="card-block px-0 py-3">
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <tbody>
+                      {% for key, value in unknown_location.items %}
+                        <tr class="unread">
+                          <td>
+                            <h5 class="mb-1">{{ value.header }}</h5>
+                            <h6>Номер незбіжності {{ key }}</h6>
+
+                            <pre>{{ value.description }}</pre>
+                          </td>
+                          <td><a href="/check_location_name/{{ key }}" class="label theme-bg text-white f-16">Додати
+                            дані</a>
+                            <a href="/close_issue_reason/{{ key }}" class="label theme-bg2 text-white f-16">Закрити без
+                              змін</a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="card TooSmallPayment">
+                <div class="card-header">
+                  <h5>Мала сума оплати. Всього незбіжностей: {{ too_small_payments_amount }}</h5>
+                </div>
+                <div class="card-block px-0 py-3">
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <tbody>
+                      {% for key, value in too_small_payments.items %}
+                        <tr class="unread">
+                          <td>
+                            <h5 class="mb-1">{{ value.header }}</h5>
+                            <h6>Номер незбіжності {{ key }}</h6>
+
+                            <pre>{{ value.description }}</pre>
+                          </td>
+                          <td>
+                            <a href="/check_small_payment/{{ key }}"
+                               class="label theme-bg text-white f-16">Зарахувати</a>
+                            <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Не рахувати</a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- [ Main Content ] end -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- [ Main Content ] end -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

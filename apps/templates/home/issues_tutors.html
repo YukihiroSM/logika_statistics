@@ -1,0 +1,204 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Profile {% endblock %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <!-- [ Main Content ] start -->
+  <div class="pcoded-main-container">
+    <div class="pcoded-wrapper">
+
+      <div class="pcoded-content">
+        <div class="pcoded-inner-content">
+          <div class="main-body">
+            <div class="page-wrapper">
+              <!-- [ Main Content ] start -->
+              {% if user_role == "admin" or user_role == "territorial_manager"%}
+              <div class="card">
+                <div class="card-header" id="headingteacher_not_found_to_check">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapseteacher_not_found_to_check"
+                                      aria-expanded="false"
+                                      aria-controls="collapseteacher_not_found_to_check">На перевірку. Група без викладача
+                    <button type="button"
+                            class="btn {% if teacher_not_found_to_check_amount > 0 %}btn-warning {% elif teacher_not_found_to_check_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ teacher_not_found_to_check_amount }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapseteacher_not_found_to_check" class=" card-body collapse"
+                     aria-labelledby="headingteacher_not_found_to_check" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in teacher_not_found_to_check.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                          {% if user_role == "admin" %}
+                            <td>
+                              <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Закрити
+                                без
+                                змін</a>
+                              <a href="/revert_issue/{{ key }}" class="label theme-bg2 text-white f-16">Повернути назад</a>
+                            </td>
+                          {% endif %}
+                          {% if user_role == "territorial_manager" %}
+                          <td>
+                              <a href="/close_issue_reason/{{ key }}" class="label theme-bg2 text-white f-16">Закрити
+                                без
+                                змін</a>
+                              <a href="/revert_issue/{{ key }}" class="label theme-bg2 text-white f-16">Повернути назад</a>
+                            </td>
+                          {% endif %}
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+
+            {% if user_role == "admin" %}
+              <div class="card">
+                <div class="card-header" id="headingteacher_not_found_to_checkadmin">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapseteacher_not_found_to_checkadmin"
+                                      aria-expanded="false"
+                                      aria-controls="collapseteacher_not_found_to_checkadmin">На перевірці у ТМ. Група без викладача
+                    <button type="button"
+                            class="btn {% if teacher_not_found_to_check_admin_tm_amount > 0 %}btn-warning {% elif teacher_not_found_to_check_admin_tm_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ teacher_not_found_to_check_admin_tm_amount }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapseteacher_not_found_to_checkadmin" class=" card-body collapse"
+                     aria-labelledby="headingteacher_not_found_to_checkadmin" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in teacher_not_found_to_check_admin_tm.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                          <td>
+                              <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Закрити
+                                без
+                                змін</a>
+                              <a href="/revert_issue/{{ key }}" class="label theme-bg2 text-white f-16">Повернути назад</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+            {% if user_role == "admin" %}
+              <div class="card">
+                <div class="card-header" id="headingteacher_not_found_to_assign">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapseteacher_not_found_to_assign"
+                                      aria-expanded="false"
+                                      aria-controls="collapseteacher_not_found_to_assign">Потрібно назначити. Група без викладача
+                    <button type="button"
+                            class="btn {% if teacher_not_found_to_assign_amount > 0 %}btn-warning {% elif teacher_not_found_to_assign_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ teacher_not_found_to_assign_amount }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapseteacher_not_found_to_assign" class=" card-body collapse"
+                     aria-labelledby="headingteacher_not_found_to_assign" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in teacher_not_found_to_assign.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                            <td>
+                              <a href="/assign_issue_tutor/{{ key }}" class="label theme-bg2 text-white f-16">Назначити незбіжність</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              <div class="card">
+                <div class="card-header" id="heading_no_teacher">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapse_no_teacher"
+                                      aria-expanded="false"
+                                      aria-controls="collapse_no_teacher">Група без викладача
+                    <button type="button"
+                            class="btn {% if teacher_not_found_amount > 0 %}btn-warning {% elif teacher_not_found_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ teacher_not_found_amount }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapse_no_teacher" class=" card-body collapse"
+                     aria-labelledby="heading_no_teacher" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in teacher_not_found.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                            <td><a href="/add_teacher_for_group/{{ key }}" class="label theme-bg text-white f-16">Додати
+                              дані</a>
+                              <a href="/close_issue_reason/{{ key }}" class="label theme-bg2 text-white f-16">Закрити
+                                без
+                                змін</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- [ Main Content ] end -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- [ Main Content ] end -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

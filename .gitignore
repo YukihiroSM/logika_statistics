@@ -1,0 +1,45 @@
+# byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# tests and coverage
+*.pytest_cache
+.coverage
+
+# database & logs
+*.db
+*.sqlite3
+*.log
+
+# venv
+env
+venv
+
+# other
+.DS_Store
+
+# javascript
+package-lock.json
+
+staticfiles/*
+!staticfiles/.gitkeep 
+.vscode/symbols.json
+
+apps/static/assets/node_modules
+apps/static/assets/yarn.lock
+apps/static/assets/.temp
+
+.idea/*
+.idea
+
+.config/*
+~/.config
+'~'
+
+1c_reports/
+lms_reports/
+chromedriver.exe
+lms_reports/Группы.csv
+lms_reports/Ученики_20220831_150332.csv
+location_tm_regional_tutor_mapping.csv
+report_scales.txt

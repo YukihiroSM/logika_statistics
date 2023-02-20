@@ -1,0 +1,386 @@
+{% extends "layouts/base.html" %}
+{% block title %} Отчеты по программированию {% endblock %}
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% block content %}
+<!-- [ Main Content ] start -->
+<div class="pcoded-main-container">
+  <div class="pcoded-wrapper">
+    <div class="pcoded-content">
+      <div class="pcoded-inner-content">
+        <!-- [ breadcrumb ] start -->
+        <!-- [ breadcrumb ] end -->
+        <div class="main-body">
+          <div class="page-wrapper">
+            <!-- [ Main Content ] start -->
+            <div>
+              <!--                            <button type="button" class="btn btn-warning" onclick="document.getElementById('inconsistencies').scrollIntoView();">Несостыковок: <span class="badge badge-light">4</span> Нажмите, чтобы перейти к исправлению</button>-->
+              <div>
+                <div class="col-sm-12">
+                  <hr>
+
+                  <form method="POST" action="/programming">
+                    {% csrf_token %}
+                    <select name="report_scale" id="report_scale" class="form-control" style="width: 250px" onchange="this.form.submit()">
+                      <option value="none" selected disabled hidden>Оберіть період</option>
+                      {% for scale in report_scales %}
+                      <option value="{{ scale }}">{{ scale }}</option>
+                      {% endfor %}
+                    </select>
+                  <hr>
+                  </form>
+                  <h3 class="m-0">Програмування. Звіт за {{ report_date_default }}</h3>
+                  <br>
+                  {% if username == "logikaadmin" %}
+                  <table class="table table-hover">
+                    <tr>
+                      <th></th>
+                      <th>Записано</th>
+                      <th>Відвідали</th>
+                      <th>Оплат</th>
+                      <th>Конверсія</th>
+                      <th></th>
+                      <th class="text-center"></th>
+                    </tr>
+                    {% for key, value in ukraine_total.items %}
+                    <tr>
+                      <td>
+                        <h6 class="m-0"></h6>
+                      </td>
+                      <td>
+                        <h6 class="m-0">{{ value.total }}</h6>
+                      </td>
+                      <td>
+                        <h6 class="m-0">{{ value.attended }}</h6>
+                      </td>
+                      <td>
+                        <h6 class="m-0">{{ value.payments }}</h6>
+                      </td>
+                      <td>
+                        <h6 class="m-0"> {{ value | count_conversion }} %</h6>
+                      </td>
+                      <td>
+                        <h6 class="m-0"></h6>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </table>
+                  {% endif %}
+                  <hr>
+                  <div class="col-sm-12">
+                    <hr>
+                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                      <li class="nav-item">
+                        <a class="nav-link active show" id="pills-home-tab" data-toggle="pill" href="#pills-home"
+                           role="tab" aria-controls="pills-home" aria-selected="true">По локації</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab"
+                           aria-controls="pills-profile" aria-selected="false">По КМ</a>
+                      </li>
+                    </ul>
+                    <div class="tab-content" id="pills-tabContent">
+                      <div class="tab-pane fade active show" id="pills-home" role="tabpanel"
+                           aria-labelledby="pills-home-tab">
+                        {% for regional in regionals %}
+                        <div class="card">
+                          <div class="card-header" id="heading{{ forloop.counter }}">
+                            <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                                data-target="#collapse{{ forloop.counter }}"
+                                                aria-expanded="false"
+                                                aria-controls="collapse{{ forloop.counter }}">{{ regional }}</a></h5>
+                          </div>
+                          <div id="collapse{{ forloop.counter }}" class=" card-body collapse"
+                               aria-labelledby="heading{{ forloop.counter }}" data-parent="#accordionExample">
+                            {% for tm, reg in tms.items %}
+                            {% if reg == regional %}
+                            <div class="card">
+                              <div class="card-header" id="heading_tm{{ forloop.counter }}">
+                                <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                                    data-target="#collapse_tm{{ forloop.counter }}"
+                                                    aria-expanded="false"
+                                                    aria-controls="collapse_tm{{ forloop.counter }}">{{ tm }}</a></h5>
+                              </div>
+                              <div id="collapse_tm{{ forloop.counter }}" class=" card-body collapse"
+                                   aria-labelledby="heading_tm{{ forloop.counter }}" data-parent="#accordionTM">
+                                <table class="table table-hover">
+                                  <thead>
+                                  <tr>
+                                    <th>Локація</th>
+                                    <th>Усього записано</th>
+                                    <th>Відвідали</th>
+                                    <th>Оплат</th>
+                                    <th>Конверсія</th>
+                                    <th>Куратор</th>
+                                    <th class="text-right"></th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  {% for report in reports %}
+                                  {% if report.business == "programming" %}
+                                  {% if report.regional_manager == regional %}
+                                  {% if report.territorial_manager == tm %}
+                                  <tr>
+                                    <td>
+                                      <h6 class="m-0">{{ report.location_name }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ report.total }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ report.attended }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ report.payments }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ report | count_conversion }} %</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0"> {{ report.client_manager }}</h6>
+                                    </td>
+                                  </tr>
+
+                                  {% endif %}
+                                  {% endif %}
+                                  {% endif %}
+                                  {% endfor %}
+                                  <tr>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                  </tr>
+                                  {% for key, value in tm_totals.items %}
+                                  {% if key == tm %}
+                                  <tr>
+                                    <td>
+                                      <h6 class="m-0"> Усього </h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ value.total }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ value.attended }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ value.payments }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0"> {{ value | count_conversion }} %</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0"> - </h6>
+                                    </td>
+                                  </tr>
+                                  {% endif %}
+                                  {% endfor %}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+
+                          </div>
+                          <table>
+                            <tr>
+                              <th></th>
+                              <th>Записано</th>
+                              <th>Відвідали</th>
+                              <th>Оплат</th>
+                              <th>Конверсія</th>
+                              <th></th>
+                              <th class="text-center"></th>
+                            </tr>
+                            {% for key, value in rm_totals.items %}
+                            {% if key == regional %}
+                            <tr>
+                              <td>
+                                <h6 class="m-0"></h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0">{{ value.total }}</h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0">{{ value.attended }}</h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0">{{ value.payments }}</h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0"> {{ value | count_conversion }} %</h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0"></h6>
+                              </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                          </table>
+                        </div>
+                        {% endfor %}
+                      </div>
+                      <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                        {% for regional in regionals %}
+                        <div class="card">
+                          <div class="card-header" id="heading_km{{ forloop.counter }}">
+                            <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                                data-target="#collapse_km{{ forloop.counter }}"
+                                                aria-expanded="false"
+                                                aria-controls="collapse_km{{ forloop.counter }}">{{ regional }}</a></h5>
+                          </div>
+                          <div id="collapse_km{{ forloop.counter }}" class=" card-body collapse"
+                               aria-labelledby="heading_km{{ forloop.counter }}" data-parent="#accordionExample2">
+                            {% for tm, reg in tms.items %}
+                            {% if reg == regional %}
+                            <div class="card">
+                              <div class="card-header" id="heading_tm_km{{ forloop.counter }}">
+                                <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                                    data-target="#collapse_tm_km{{ forloop.counter }}"
+                                                    aria-expanded="false"
+                                                    aria-controls="collapse_tm_km{{ forloop.counter }}">{{ tm }}</a></h5>
+                              </div>
+                              <div id="collapse_tm_km{{ forloop.counter }}" class=" card-body collapse"
+                                   aria-labelledby="heading_tm_km{{ forloop.counter }}" data-parent="#accordionTM2">
+                                <table class="table table-hover">
+                                  <thead>
+                                  <tr>
+                                    <th>КМ</th>
+                                    <th>Усього записано</th>
+                                    <th>Відвідали</th>
+                                    <th>Оплат</th>
+                                    <th>Конверсія</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  {% for km, values in reports_by_km.items %}
+                                  {% if values.business == "programming" %}
+                                  {% if values.regional_manager == regional %}
+                                  {% if values.territorial_manager == tm %}
+                                  <tr>
+                                    <td>
+                                      <h6 class="m-0">{{ km }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ values.total }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ values.attended }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ values.payments }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ values | count_conversion }} %</h6>
+                                    </td>
+                                  </tr>
+
+                                  {% endif %}
+                                  {% endif %}
+                                  {% endif %}
+                                  {% endfor %}
+                                  <tr>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                  </tr>
+                                  {% for key, value in tm_totals.items %}
+                                  {% if key == tm %}
+                                  <tr>
+                                    <td>
+                                      <h6 class="m-0"> Усього </h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ value.total }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ value.attended }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0">{{ value.payments }}</h6>
+                                    </td>
+                                    <td>
+                                      <h6 class="m-0"> {{ value | count_conversion }} %</h6>
+                                    </td>
+                                  </tr>
+                                  {% endif %}
+                                  {% endfor %}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+
+                          </div>
+                          <table>
+                            <tr>
+                              <th></th>
+                              <th>Записано</th>
+                              <th>Відвідали</th>
+                              <th>Оплат</th>
+                              <th>Конверсія</th>
+                              <th class="text-center"></th>
+                            </tr>
+                            {% for key, value in rm_totals.items %}
+                            {% if key == regional %}
+                            <tr>
+                              <td>
+                                <h6 class="m-0"></h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0">{{ value.total }}</h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0">{{ value.attended }}</h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0">{{ value.payments }}</h6>
+                              </td>
+                              <td>
+                                <h6 class="m-0"> {{ value | count_conversion }} %</h6>
+                              </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                          </table>
+                        </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="inconsistencies">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- [ Main Content ] end -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- [ Main Content ] end -->
+{% endblock content %}
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -1,0 +1,558 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Profile {% endblock %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <!-- [ Main Content ] start -->
+  <div class="pcoded-main-container">
+    <div class="pcoded-wrapper">
+
+      <div class="pcoded-content">
+        <div class="pcoded-inner-content">
+          <div class="main-body">
+            <div class="page-wrapper">
+              <!-- [ Main Content ] start -->
+
+              {% if user_role == "admin" %}
+                <div class="card">
+                  <div class="card-header" id="heading_to_be_assigned_no_location">
+                    <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                        data-target="#collapse_to_be_assigned_no_location"
+                                        aria-expanded="false"
+                                        aria-controls="collapse_to_be_assigned_no_location">Потрібно назначити. Група без локації
+                      <button type="button"
+                              class="btn {% if to_be_assigned_no_location_in_group_amount > 0 %}btn-warning {% elif to_be_assigned_no_location_in_group_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                        Кількість: <span class="badge badge-light">{{ to_be_assigned_no_location_in_group_amount }}</span></button>
+                    </a></h5>
+                  </div>
+                  <div id="collapse_to_be_assigned_no_location" class=" card-body collapse"
+                       aria-labelledby="heading_to_be_assigned_no_location" data-parent="#accordionExample">
+                    <div class="card-block px-0 py-3">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <tbody>
+                          {% for key, value in to_be_assigned_no_location_in_group.items %}
+                            <tr class="unread">
+                              <td>
+                                <h5 class="mb-1">{{ value.header }}</h5>
+                                <h6>Номер незбіжності {{ key }}</h6>
+
+                                <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                              </td>
+                              <td>
+                                <a href="/assign_issue/{{ key }}" class="label theme-bg text-white f-16">Перенаправити
+                                  незбіжність</a>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+
+
+              {% if user_role == "admin" %}
+                <div class="card">
+                  <div class="card-header" id="headingto_be_assigned_amo_id">
+                    <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                        data-target="#collapseto_be_assigned_amo_id"
+                                        aria-expanded="false"
+                                        aria-controls="collapseto_be_assigned_amo_id">Потрібно назначити. Студенти без
+                      АМО
+                      <button type="button"
+                              class="btn {% if to_be_assigned_amo_id_amount > 0 %}btn-warning {% elif to_be_assigned_amo_id_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                        Кількість: <span class="badge badge-light">{{ to_be_assigned_amo_id_amount }}</span></button>
+                    </a></h5>
+                  </div>
+                  <div id="collapseto_be_assigned_amo_id" class=" card-body collapse"
+                       aria-labelledby="headingto_be_assigned_amo_id" data-parent="#accordionExample">
+                    <div class="card-block px-0 py-3">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <tbody>
+                          {% for key, value in to_be_assigned_amo_id.items %}
+                            <tr class="unread">
+                              <td>
+                                <h5 class="mb-1">{{ value.header }}</h5>
+                                <h6>Номер незбіжності {{ key }}</h6>
+
+                                <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                              </td>
+                              <td>
+                                <a href="/assign_issue/{{ key }}" class="label theme-bg text-white f-16">Перенаправити
+                                  незбіжність</a>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+
+              {% if user_role == "admin" %}
+                <div class="card">
+                  <div class="card-header" id="headingto_be_assigned_no_cm_in_group">
+                    <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                        data-target="#collapseto_be_assigned_no_cm_in_group"
+                                        aria-expanded="false"
+                                        aria-controls="collapseto_be_assigned_no_cm_in_group">Потрібно назначити. Група
+                      без КМ
+                      <button type="button"
+                              class="btn {% if to_be_assigned_no_cm_in_group_amount > 0 %}btn-warning {% elif to_be_assigned_no_cm_in_group_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                        Кількість: <span class="badge badge-light">{{ to_be_assigned_no_cm_in_group_amount }}</span>
+                      </button>
+                    </a></h5>
+                  </div>
+                  <div id="collapseto_be_assigned_no_cm_in_group" class=" card-body collapse"
+                       aria-labelledby="headingto_be_assigned_no_cm_in_group" data-parent="#accordionExample">
+                    <div class="card-block px-0 py-3">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <tbody>
+                          {% for key, value in to_be_assigned_no_cm_in_group.items %}
+                            <tr class="unread">
+                              <td>
+                                <h5 class="mb-1">{{ value.header }}</h5>
+                                <h6>Номер незбіжності {{ key }}</h6>
+
+                                <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                              </td>
+                              <td>
+                                <a href="/assign_issue/{{ key }}" class="label theme-bg text-white f-16">Перенаправити
+                                  незбіжність</a>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+
+
+            {% if user_role == "admin" %}
+                <div class="card">
+                  <div class="card-header" id="headingto_be_assigned_student_not_found">
+                    <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                        data-target="#collapseto_be_assigned_student_not_found"
+                                        aria-expanded="false"
+                                        aria-controls="collapseto_be_assigned_student_not_found">Потрібно назначити. Студента не знайдено
+                      <button type="button"
+                              class="btn {% if to_be_assigned_student_not_found_amount > 0 %}btn-warning {% elif to_be_assigned_student_not_found_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                        Кількість: <span class="badge badge-light">{{ to_be_assigned_student_not_found_amount }}</span>
+                      </button>
+                    </a></h5>
+                  </div>
+                  <div id="collapseto_be_assigned_student_not_found" class=" card-body collapse"
+                       aria-labelledby="headingto_be_assigned_student_not_found" data-parent="#accordionExample">
+                    <div class="card-block px-0 py-3">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <tbody>
+                          {% for key, value in to_be_assigned_student_not_found.items %}
+                            <tr class="unread">
+                              <td>
+                                <h5 class="mb-1">{{ value.header }}</h5>
+                                <h6>Номер незбіжності {{ key }}</h6>
+
+                                <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                              </td>
+                              <td>
+                                <a href="/assign_issue/{{ key }}" class="label theme-bg text-white f-16">Перенаправити
+                                  незбіжність</a>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+               {% if user_role == "admin" or user_role == "territorial_manager" %}
+                <div class="card">
+                  <div class="card-header" id="headingNoAmoIDToCheck">
+                    <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                        data-target="#collapseNoAmoIDToCheck"
+                                        aria-expanded="false"
+                                        aria-controls="collapseNoAmoIDToCheck">На перевірку. Студенти без АМО.
+                      <button type="button"
+                              class="btn {% if amo_to_check_total > 0 %}btn-warning {% elif amo_to_check_total > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                        Кількість: <span class="badge badge-light">{{ amo_to_check_total }}</span></button>
+                    </a></h5>
+                  </div>
+                  <div id="collapseNoAmoIDToCheck" class=" card-body collapse"
+                       aria-labelledby="headingNoAmoIDToCheck" data-parent="#accordionExample">
+                    <div class="card-block px-0 py-3">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <tbody>
+                          {% for key, value in no_amo_id_to_check.items %}
+                            <tr class="unread">
+                              <td>
+                                <h5 class="mb-1">{{ value.header }}</h5>
+                                <h6>Номер незбіжності {{ key }}</h6>
+
+                                <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                              </td>
+                              {% if user_role == "admin" %}
+                              <td>
+                                <a href="/resolve_amo_issue/{{ key }}" class="label theme-bg text-white f-16">Зарахувати
+                                  без змін</a>
+                                <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Закрити без
+                                  змін</a>
+                              <a href="/revert_issue/{{ key }}" class="label theme-bg2 text-white f-16">Повернути назад</a>
+                              </td>
+                              {% endif %}
+                            {% if user_role == "territorial_manager" %}
+                            <td>
+                                <a href="/close_no_actions_issue_reason/{{ key }}" class="label theme-bg text-white f-16">Зарахувати
+                                  без змін</a>
+                                <a href="/close_issue_reason/{{ key }}" class="label theme-bg2 text-white f-16">Закрити без
+                                  змін</a>
+                                <a href="/revert_issue/{{ key }}" class="label theme-bg2 text-white f-16">Повернути назад</a>
+                              </td>
+                            {% endif %}
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              {% endif %}
+
+
+            {% if user_role == "admin" %}
+                <div class="card">
+                  <div class="card-header" id="headingNoAmoIDToCheckadmin">
+                    <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                        data-target="#collapseNoAmoIDToCheckadmin"
+                                        aria-expanded="false"
+                                        aria-controls="collapseNoAmoIDToCheckadmin">На перевірку у ТМ. Студенти без АМО.
+                      <button type="button"
+                              class="btn {% if no_amo_id_to_check_admin_amount > 0 %}btn-warning {% elif no_amo_id_to_check_admin_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                        Кількість: <span class="badge badge-light">{{ no_amo_id_to_check_admin_amount }}</span></button>
+                    </a></h5>
+                  </div>
+                  <div id="collapseNoAmoIDToCheckadmin" class=" card-body collapse"
+                       aria-labelledby="headingNoAmoIDToCheckadmin" data-parent="#accordionExample">
+                    <div class="card-block px-0 py-3">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <tbody>
+                          {% for key, value in no_amo_id_to_check_admin.items %}
+                            <tr class="unread">
+                              <td>
+                                <h5 class="mb-1">{{ value.header }}</h5>
+                                <h6>Номер незбіжності {{ key }}</h6>
+
+                                <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                              </td>
+
+                              <td>
+                                <a href="/resolve_amo_issue/{{ key }}" class="label theme-bg text-white f-16">Зарахувати
+                                  без змін</a>
+                                <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Закрити без
+                                  змін</a>
+                              <a href="/revert_issue/{{ key }}" class="label theme-bg2 text-white f-16">Повернути назад</a>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              {% endif %}
+
+
+              {% if user_role == "admin" or user_role == "territorial_manager" %}
+                <div class="card">
+                  <div class="card-header" id="headingSmallPaymentCheck">
+                    <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                        data-target="#collapseSmallPaymentCheck"
+                                        aria-expanded="false"
+                                        aria-controls="collapseSmallPaymentCheck">На перевірку. Оплати з малою сумою.
+                      <button type="button"
+                              class="btn {% if small_payments_issues_to_check_ready_amount > 0 %}btn-warning {% elif small_payments_issues_to_check_ready_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                        Кількість: <span
+                              class="badge badge-light">{{ small_payments_issues_to_check_ready_amount }}</span>
+                      </button>
+                    </a></h5>
+                  </div>
+                  <div id="collapseSmallPaymentCheck" class=" card-body collapse"
+                       aria-labelledby="headingSmallPaymentCheck" data-parent="#accordionExample">
+                    <div class="card-block px-0 py-3">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <tbody>
+                          {% for key, value in small_payments_issues_to_check_ready.items %}
+                            <tr class="unread">
+                              <td>
+                                <h5 class="mb-1">{{ value.header }}</h5>
+                                <h6>Номер незбіжності {{ key }}</h6>
+
+                                <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                              </td>
+                              {% if user_role == "admin" %}
+                              <td>
+                                <a href="/add_small_payment/{{ key }}"
+                                   class="label theme-bg text-white f-16">Зарахувати</a>
+                                <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Не рахувати</a>
+                              <a href="/revert_issue/{{ key }}" class="label theme-bg2 text-white f-16">Повернути назад</a>
+                              </td>
+                              {% endif %}
+                              {% if user_role == "territorial_manager" %}
+                              <td>
+                                <a href="/check_small_payment/{{ key }}"
+                                   class="label theme-bg text-white f-16">Зарахувати</a>
+                                <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Не рахувати</a>
+                              <a href="/revert_issue/{{ key }}" class="label theme-bg2 text-white f-16">Повернути назад</a>
+                              </td>
+                              {% endif %}
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              {% endif %}
+
+              <div class="card">
+                <div class="card-header" id="headingNoAmoID">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapseNoAmoID"
+                                      aria-expanded="false"
+                                      aria-controls="collapseNoAmoID">Студенти без АМО
+                    <button type="button"
+                            class="btn {% if total_issues > 0 %}btn-warning {% elif total_issues > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ total_issues }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapseNoAmoID" class=" card-body collapse"
+                     aria-labelledby="headingNoAmoID" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in no_amo_id.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                            <td><a href="/add_student_amo_ref/{{ key }}" class="label theme-bg text-white f-16">Додати
+                              дані</a>
+                              <a href="/close_no_actions_issue_reason/{{ key }}" class="label theme-bg text-white f-16">Зарахувати
+                                без змін</a>
+                              <a href="/close_issue_reason/{{ key }}" class="label theme-bg2 text-white f-16">Закрити
+                                без
+                                змін</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {% if user_role == "admin" or user_role == "territorial_manager" or user_role == "regional" %}
+              <div class="card">
+                <div class="card-header" id="headingTooSmallPayment">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapseTooSmallPayment"
+                                      aria-expanded="false"
+                                      aria-controls="collapseTooSmallPayment">Мала сума оплати
+                    <button type="button"
+                            class="btn {% if too_small_payments_amount > 0 %}btn-warning {% elif too_small_payments_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ too_small_payments_amount }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapseTooSmallPayment" class=" card-body collapse"
+                     aria-labelledby="headingTooSmallPayment" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in too_small_payments.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                            <td>
+                              <a href="/check_small_payment/{{ key }}"
+                                 class="label theme-bg text-white f-16">Зарахувати</a>
+                              <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Не рахувати</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="card">
+                <div class="card-header" id="headingNoCmInGroup">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapseNoCmInGroup"
+                                      aria-expanded="false"
+                                      aria-controls="collapseNoCmInGroup">Немає КМ в групі
+                    <button type="button"
+                            class="btn {% if no_cm_in_group_ready_amount > 0 %}btn-warning {% elif no_cm_in_group_ready_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ no_cm_in_group_ready_amount }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapseNoCmInGroup" class=" card-body collapse"
+                     aria-labelledby="headingNoCmInGroup" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in no_cm_in_group_ready.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                            <td>
+                              <a href="/add_client_manager/{{ key }}" class="label theme-bg text-white f-16">Додати КМ</a>
+                              <a href="/close_issue_reason/{{ key }}" class="label theme-bg2 text-white f-16">Закрити
+                                без
+                                змін</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+             <div class="card">
+                <div class="card-header" id="heading_no_location_in_group">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapse_no_location_in_group"
+                                      aria-expanded="false"
+                                      aria-controls="collapse_no_location_in_group">Немає локації в групі
+                    <button type="button"
+                            class="btn {% if no_location_in_group_amount > 0 %}btn-warning {% elif no_location_in_group_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ no_location_in_group_amount }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapse_no_location_in_group" class=" card-body collapse"
+                     aria-labelledby="heading_no_location_in_group" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in no_location_in_group.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                            <td>
+                              <a href="/add_location/{{ key }}" class="label theme-bg text-white f-16">Поставити локацію</a>
+                              <a href="/close_issue_reason/{{ key }}" class="label theme-bg2 text-white f-16">Закрити
+                                без
+                                змін</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+            {% if user_role == "admin" or user_role == "territorial_manager" or user_role == "regional" %}
+            <div class="card">
+                <div class="card-header" id="headingStudent_not_found">
+                  <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                      data-target="#collapseStudent_not_found"
+                                      aria-expanded="false"
+                                      aria-controls="collapseStudent_not_found">Студента не знайдено по оплаті
+                    <button type="button"
+                            class="btn {% if student_not_found_ready_amount > 0 %}btn-warning {% elif student_not_found_ready_amount > 50 %} btn-danger {% else %}btn-success{% endif %}">
+                      Кількість: <span class="badge badge-light">{{ student_not_found_ready_amount }}</span></button>
+                  </a></h5>
+                </div>
+                <div id="collapseStudent_not_found" class=" card-body collapse"
+                     aria-labelledby="headingStudent_not_found" data-parent="#accordionExample">
+                  <div class="card-block px-0 py-3">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <tbody>
+                        {% for key, value in student_not_found_ready.items %}
+                          <tr class="unread">
+                            <td>
+                              <h5 class="mb-1">{{ value.header }}</h5>
+                              <h6>Номер незбіжності {{ key }}</h6>
+
+                              <pre>{% autoescape off %}{{ value.description }}{% endautoescape %}</pre>
+                            </td>
+                            <td><a href="/add_student_id/{{ key }}" class="label theme-bg text-white f-16">Додати
+                              дані</a>
+                              <a href="/close_issue/{{ key }}" class="label theme-bg2 text-white f-16">Не рахувати оплату</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              <!-- [ Main Content ] end -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- [ Main Content ] end -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

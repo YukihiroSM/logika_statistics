@@ -1,0 +1,289 @@
+{% extends "layouts/base.html" %}
+{% block title %} Отчеты по программированию {% endblock %}
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+<style>
+    [data-sort]:hover {
+        cursor: pointer;
+    }
+    [data-dir="asc"]:after {
+      content: ' ↗';
+    }
+    [data-dir="desc"]:after {
+      content: ' ↘';
+    }
+</style>
+
+{% endblock stylesheets %}
+{% block content %}
+    <!-- Multiselect -->
+    <script>
+        $(document).ready(function () {
+            $('#regional_managers').select2();
+        });
+    </script>
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <div class="pcoded-wrapper">
+            <div class="pcoded-content">
+                <div class="pcoded-inner-content">
+                    <!-- [ breadcrumb ] start -->
+                    <!-- [ breadcrumb ] end -->
+                    <div class="main-body">
+                        <div class="page-wrapper">
+                            <!-- [ Main Content ] start -->
+                        {% load number_to_readable %}
+                        {% load none_to_readable %}
+                            <div class="col-sm-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Налаштування звіту</h5>
+                                    </div>
+                                    <div class="card-body">
+                                    <form method="POST" action="/extended_report_programming">
+                                        <div class="row">
+                                            <div class="col-md-6">
+
+                                                    {% csrf_token %}
+                                                    <h3>Регіональний менеджер</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Регіональний менеджер"
+                                                            id="regional_managers"
+                                                            name="regional_managers[]">
+                                                        {% for regional_manager in regional_managers %}
+                                                            <option {% if regional_manager in  choosen_regionals %} selected {% endif %} value="{{ regional_manager }}">{{ regional_manager }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <hr>
+                                            <h3>Записаний на МК</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Записаний на МК"
+                                                            id="enrolled_mc"
+                                                            name="enrolled_mc[]">
+
+                                                            <option {% if 'Так' in chosen_enrolled %} selected {% endif %} value="1">Так</option>
+                                                            <option {% if 'Ні' in chosen_enrolled %} selected {% endif %} value="0">Ні</option>
+
+                                                    </select>
+                                                    <hr>
+                                            <h3>Відвідав МК</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Відвідав МК"
+                                                            id="attended_mc"
+                                                            name="attended_mc[]">
+
+                                                            <option {% if 'Так' in chosen_attedned %} selected {% endif %} value="1">Так</option>
+                                                            <option {% if 'Ні' in chosen_attedned %} selected {% endif %} value="0">Ні</option>
+
+                                                    </select>
+                                                    <hr>
+                                             <h3>Оплата</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Оплата"
+                                                            id="payment"
+                                                            name="payment[]">
+
+                                                            <option {% if 'Так' in chosen_payments %} selected {% endif %} value="1">Так</option>
+                                                            <option {% if 'Ні' in chosen_payments %} selected {% endif %} value="0">Ні</option>
+
+                                                    </select>
+                                                    <hr>
+                                            <h3>Напрям бізнесу</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Бізнес"
+                                                            id="business"
+                                                            name="business[]">
+
+                                                            <option {% if 'programming' in chosen_business %} selected {% endif %} value="programming">Програмування</option>
+                                                            <option {% if 'english' in chosen_business %} selected {% endif %} value="english">Англійська</option>
+
+                                                    </select>
+                                                    <hr>
+
+                                            <h3>Курс</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Курс"
+                                                            id="courses"
+                                                            name="courses[]">
+
+                                                            <option {% if "python start" in  chosen_courses %} selected {% endif %} value="python start">Python Start</option>
+                                                            <option {% if "python pro" in  chosen_courses %} selected {% endif %} value="python pro">Python Pro</option>
+                                                            <option {% if "scratch" in  chosen_courses %} selected {% endif %} value="scratch">Scratch</option>
+                                                            <option {% if "gamedesign" in  chosen_courses %} selected {% endif %} value="gamedesign">Геймдизайн</option>
+                                                            <option {% if "graphdesign" in  chosen_courses %} selected {% endif %} value="graphdesign">Графічний дизайн</option>
+                                                            <option {% if "websites" in  chosen_courses %} selected {% endif %} value="websites">Створення сайтів</option>
+                                                            <option {% if "comp_gram" in  chosen_courses %} selected {% endif %} value="comp_gram">Компʼютерна грамотність</option>
+                                                            <option {% if "video_blogging" in  chosen_courses %} selected {% endif %} value="video_blogging">Відеоблогінг</option>
+                                                            <option {% if "english" in  chosen_courses %} selected {% endif %} value="english">Англійська</option>
+
+                                                    </select>
+                                                    <hr>
+                                            <button type="submit" class="btn btn-primary">Сформувати</button>
+
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h3>Дати звіту</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Дати звіту"
+                                                            id="report_scales"
+                                                            name="report_scales[]">
+                                                        {% for scale in report_scales %}
+                                                            <option {% if scale in  chosen_scales %} selected {% endif %} value="{{ scale }}">{{ scale }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <hr>
+
+                                                <h3>Територіальний менеджер</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Територіальний менеджер"
+                                                            id="territorial_managers"
+                                                            name="territorial_managers[]">
+                                                        {% for tm in territorial_managers %}
+                                                            <option {% if tm in  chosen_tm %} selected {% endif %} value="{{ tm }}">{{ tm }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <hr>
+                                                <h3>Клієнтський менеджер</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Клієнтський менеджер"
+                                                            id="client_managers"
+                                                            name="client_managers[]">
+                                                        {% for cm in client_managers %}
+                                                            <option {% if cm in  chosen_cm %} selected {% endif %} value="{{ cm }}">{{ cm }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <hr>
+                                                <h3>Тʼютор</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Тʼютор"
+                                                            id="tutors"
+                                                            name="tutors[]">
+                                                        {% for tutor in tutors %}
+                                                            <option {% if tutor in  chosen_tutor %} selected {% endif %} value="{{ tutor }}">{{ tutor }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <hr>
+                                                <h3>Локація</h3>
+                                                    <select  class="js-example-basic-multiple" multiple="multiple"
+                                                            data-placeholder="Локація"
+                                                            id="locations"
+                                                            name="locations[]">
+                                                        {% for location in possible_locations %}
+                                                            <option {% if location in  chosen_locations %} selected {% endif %} value="{{ location }}">{{ location }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <hr>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="card">
+                                        <div class="card-header">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h2>Звіт</h2>
+                                                    <h5>Обрані параметри: </h5>
+                                                    <h5 class="d-block m-t-5">Регіональні менеджери: {{ choosen_regionals }} </h5>
+                                                    <h5 class="d-block m-t-5">Територіальні менеджери: {{ chosen_tm }} </h5>
+                                                    <h5 class="d-block m-t-5">Клієнтські менеджери: {{ chosen_cm }} </h5>
+                                                    <h5 class="d-block m-t-5">Тʼютори: {{ chosen_tutor }} </h5>
+                                                    <h5 class="d-block m-t-5">Напрям бізнесу: {{ chosen_business }} </h5>
+                                                    <h5 class="d-block m-t-5">Локація: {{ chosen_location }} </h5>
+                                                    <h5 class="d-block m-t-5">Курс: {{ chosen_course }} </h5>
+                                                    <h5 class="d-block m-t-5">Обраний період: {{ chosen_scales }} </h5>
+                                                    <h5 class="d-block m-t-5">Всього записів: {{ reports|length }} </h5>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h4>Всього Прийшло: {{ total_attended }}</h4>
+                                                    <h4>Всього оплат: {{ total_payment }}</h4>
+                                                    <h4>Всього Записано: {{ total_enrolled }}</h4>
+                                                    <h4>Конверсія: {{ сonversion }} %</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-block table-border-style">
+                                            <div class="table-responsive">
+                                                <table class="table table-sortable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th data-sort="int">LMS ID</th>
+                                                            <th data-sort="int">AMO ID</th>
+                                                            <th data-sort="string">Імʼя</th>
+                                                            <th data-sort="string">Прізвище</th>
+                                                            <th data-sort="string">Записаний на МК</th>
+                                                            <th data-sort="string">Відвідав МК</th>
+                                                            <th data-sort="string">Оплата</th>
+                                                            <th data-sort="string">Локація</th>
+                                                            <th data-sort="string">Викладач</th>
+                                                            <th data-sort="string">Клієнтський менеджер</th>
+                                                            <th data-sort="string">Територіальний менеджер</th>
+                                                            <th data-sort="string">Регіональний менеджер</th>
+                                                            <th data-sort="string">Тʼютор</th>
+                                                            <th data-sort="string">Напрям бізнесу</th>
+                                                            <th data-sort="string">Курс</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for report in reports %}
+                                                        <tr>
+
+                                                            <td>{{ report.student_lms_id|none_to_readable }}</td>
+                                                            <td>{{ report.amo_id|none_to_readable }}</td>
+                                                            <td>{{ report.student_first_name|none_to_readable }}</td>
+                                                            <td>{{ report.student_last_name|none_to_readable }}</td>
+                                                            <td>{{ report.enrolled_mc|number_to_readable }}</td>
+                                                            <td>{{ report.attended_mc|number_to_readable }}</td>
+                                                            <td>{{ report.payment|number_to_readable }}</td>
+                                                            <td>{{ report.location|none_to_readable }}</td>
+                                                            <td>{{ report.teacher|none_to_readable }}</td>
+                                                            <td>{{ report.client_manager|none_to_readable }}</td>
+                                                            <td>{{ report.territorial_manager|none_to_readable }}</td>
+                                                            <td>{{ report.regional_manager|none_to_readable }}</td>
+                                                            <td>{{ report.tutor|none_to_readable }}</td>
+                                                            <td>{{ report.business|none_to_readable }}</td>
+                                                            <td>{{ report.course|none_to_readable }}</td>
+
+                                                        </tr>
+                                                        {% endfor %}
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                        <!-- [ Main Content ] end -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- [ Main Content ] end -->
+{% endblock content %}
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ ASSETS_ROOT }}/js/tablesort.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#regional_managers').select2();
+            $('#report_scales').select2();
+            $('#attended_mc').select2();
+            $('#enrolled_mc').select2();
+            $('#payment').select2();
+            $('#tutors').select2();
+            $('#client_managers').select2();
+            $('#territorial_managers').select2();
+            $('#business').select2();
+            $('#locations').select2();
+            $('#courses').select2();
+            $('#teachers').select2();
+            document.querySelector('.table-sortable').tsortable()
+        });
+    </script>
+{% endblock javascripts %}
