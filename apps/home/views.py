@@ -8,7 +8,7 @@ import pandas as pd
 import requests
 from django import template
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.template import loader
 from django.urls import reverse
@@ -39,6 +39,7 @@ from .models import (
     Payment,
     GlobalGroup,
     StudentReport,
+    UsersMapping
 )
 
 
@@ -295,7 +296,7 @@ def programming_new(request):
             .exclude(amo_id=None)
             .all()
         )
-    elif get_user_role(request.user).startswith("territorial_manager"):
+    elif get_user_role(request.user) == "territorial_manager":
         reports = (
             StudentReport.objects.filter(
                 start_date__gte=report_start,
@@ -307,6 +308,23 @@ def programming_new(request):
             .exclude(amo_id=None)
             .all()
         )
+    elif get_user_role(request.user) == "territorial_manager_km":
+        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+        if manager is None:
+            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+        else:
+
+            reports = (
+                StudentReport.objects.filter(
+                    start_date__gte=report_start,
+                    end_date__lte=report_end,
+                    is_duplicate=0,
+                    business="programming",
+                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                )
+                .exclude(amo_id=None)
+                .all()
+            )
     all_locations = []
     territorial_managers = []
     all_client_managers = []
@@ -711,7 +729,23 @@ def english_new(request):
             .exclude(amo_id=None)
             .all()
         )
-    elif get_user_role(request.user).startswith("territorial_manager"):
+    elif get_user_role(request.user) == "territorial_manager":
+        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+        if manager is None:
+            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+        else:
+            reports = (
+                StudentReport.objects.filter(
+                    start_date__gte=report_start,
+                    end_date__lte=report_end,
+                    is_duplicate=0,
+                    business="english",
+                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                )
+                .exclude(amo_id=None)
+                .all()
+            )
+    elif get_user_role(request.user) == "territorial_manager_km":
         reports = (
             StudentReport.objects.filter(
                 start_date__gte=report_start,
@@ -1007,7 +1041,7 @@ def programming_tutor_new(request):
             .exclude(amo_id=None)
             .all()
         )
-    elif get_user_role(request.user).startswith("territorial_manager"):
+    elif get_user_role(request.user) == "territorial_manager":
         reports = (
             StudentReport.objects.filter(
                 start_date__gte=report_start,
@@ -1019,6 +1053,22 @@ def programming_tutor_new(request):
             .exclude(amo_id=None)
             .all()
         )
+    elif get_user_role(request.user) == "territorial_manager_km":
+        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+        if manager is None:
+            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+        else:
+            reports = (
+                StudentReport.objects.filter(
+                    start_date__gte=report_start,
+                    end_date__lte=report_end,
+                    is_duplicate=0,
+                    business="programming",
+                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                )
+                .exclude(amo_id=None)
+                .all()
+            )
     elif get_user_role(request.user) == "tutor":
         reports = (
             StudentReport.objects.filter(
@@ -1255,7 +1305,7 @@ def english_tutor_new(request):
             .exclude(amo_id=None)
             .all()
         )
-    elif get_user_role(request.user).startswith("territorial_manager"):
+    elif get_user_role(request.user) == "territorial_manager":
         reports = (
             StudentReport.objects.filter(
                 start_date__gte=report_start,
@@ -1266,6 +1316,21 @@ def english_tutor_new(request):
             .exclude(amo_id=None)
             .all()
         )
+    elif get_user_role(request.user) == "territorial_manager_km":
+        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+        if manager is None:
+            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+        else:
+            reports = (
+                StudentReport.objects.filter(
+                    start_date__gte=report_start,
+                    end_date__lte=report_end,
+                    business="english",
+                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                )
+                .exclude(amo_id=None)
+                .all()
+            )
     elif get_user_role(request.user) == "tutor":
         reports = (
             StudentReport.objects.filter(
@@ -1493,7 +1558,7 @@ def programming_teacher_new(request):
             .exclude(amo_id=None)
             .order_by("location")
         )
-    elif get_user_role(request.user).startswith("territorial_manager"):
+    elif get_user_role(request.user) == "territorial_manager":
         reports = (
             StudentReport.objects.filter(
                 start_date__gte=report_start,
@@ -1505,6 +1570,22 @@ def programming_teacher_new(request):
             .exclude(amo_id=None)
             .order_by("location")
         )
+    elif get_user_role(request.user) == "territorial_manager_km":
+        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+        if manager is None:
+            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+        else:
+            reports = (
+                StudentReport.objects.filter(
+                    start_date__gte=report_start,
+                    end_date__lte=report_end,
+                    is_duplicate=0,
+                    business="programming",
+                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                )
+                .exclude(amo_id=None)
+                .order_by("location")
+            )
     elif get_user_role(request.user) == "tutor":
         reports = (
             StudentReport.objects.filter(
@@ -1522,10 +1603,18 @@ def programming_teacher_new(request):
     if get_user_role(request.user) == "regional":
         all_regionals = [f"{request.user.last_name} {request.user.first_name}"]
         locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
-    elif get_user_role(request.user).startswith("territorial_manager"):
+    elif get_user_role(request.user) == "territorial_manager":
         regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
         all_regionals = [regional]
         locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+    elif get_user_role(request.user) == "territorial_manager_km":
+        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+        if manager is None:
+            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+        else:
+            regional = get_rm_by_tm(f"{manager.last_name} {manager.first_name}")
+            all_regionals = [regional]
+            locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "tutor":
         regional = get_rm_by_tutor_programming(
             f"{request.user.last_name} {request.user.first_name}"
@@ -1705,7 +1794,7 @@ def english_teacher_new(request):
             .exclude(amo_id=None)
             .order_by("location")
         )
-    elif get_user_role(request.user).startswith("territorial_manager"):
+    elif get_user_role(request.user) == "territorial_manager":
         reports = (
             StudentReport.objects.filter(
                 start_date__gte=report_start,
@@ -1716,6 +1805,22 @@ def english_teacher_new(request):
             .exclude(amo_id=None)
             .order_by("location")
         )
+    elif get_user_role(request.user) == "territorial_manager_km":
+        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+        if manager is None:
+            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+        else:
+            reports = (
+                StudentReport.objects.filter(
+                    start_date__gte=report_start,
+                    end_date__lte=report_end,
+                    business="english",
+                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                )
+                .exclude(amo_id=None)
+                .order_by("location")
+            )
+
     elif get_user_role(request.user) == "tutor":
         reports = (
             StudentReport.objects.filter(
@@ -1732,10 +1837,18 @@ def english_teacher_new(request):
     if get_user_role(request.user) == "regional":
         all_regionals = [f"{request.user.last_name} {request.user.first_name}"]
         locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
-    elif get_user_role(request.user).startswith("territorial_manager"):
+    elif get_user_role(request.user) == "territorial_manager":
         regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
         all_regionals = [regional]
         locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+    elif get_user_role(request.user) == "territorial_manager_km":
+        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+        if manager is None:
+            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+        else:
+            regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
+            all_regionals = [regional]
+            locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "tutor":
         regional = get_rm_by_tutor_english(
             f"{request.user.last_name} {request.user.first_name}"
@@ -4161,103 +4274,6 @@ def get_rm_by_tutor_english(tutor):
         return "None"
 
 
-# @login_required(login_url="/login/")
-# def issues(request):
-#     user_role = get_user_role(request.user)
-#     no_amo_id = Issue.objects.filter(issue_type="student_issue:no_amo_id",
-#                                      issue_status__in=["not_resolved", "to_check"]).all()
-#     ready_no_amo_id = {}
-#     for issue in no_amo_id:
-#         if issue.issue_status in ["resolved", "closed", "resolved_without_actions"]:
-#             continue
-#         header = ". ".join(issue.issue_header.split("+++"))
-#         description = "\n".join(issue.issue_data.split("+++"))
-#         todo = "Додайте АМО до профіля студента в ЛМС або закрийте незбіжність."
-#         issue_id = issue.id
-#         roles = issue.issue_roles.split(";")
-#         roles.pop(-1)
-#
-#         if user_role == "admin":
-#             ready_no_amo_id[issue_id] = {
-#                 "header": header,
-#                 "description": description,
-#                 "todo": todo
-#             }
-#
-#         if user_role == "territorial_manager" or user_role == "regional":
-#             for role in roles:
-#                 if role.startswith("territorial_manager"):
-#                     tm_name = role.split(":")[1]
-#                     rm_name = get_rm_by_tm(tm_name)
-#                     user_full_name = f"{request.user.last_name} {request.user.first_name}"
-#                     if user_full_name == tm_name or user_full_name == rm_name:
-#                         ready_no_amo_id[issue_id] = {
-#                             "header": header,
-#                             "description": description,
-#                             "todo": todo
-#                         }
-#     issues_to_check = Issue.objects.filter(issue_type="to_check:no_amo_id").all()
-#     issues_to_check_ready = {}
-#     for issue in issues_to_check:
-#         if issue.issue_status in ["resolved", "closed", "resolved_without_actions"]:
-#             continue
-#         header = ". ".join(issue.issue_header.split("+++"))
-#         description = "\n".join(issue.issue_data.split("+++"))
-#         todo = "Перевірте закриту незбіжність"
-#         issue_id = issue.id
-#         roles = issue.issue_roles.split(";")
-#         roles.pop(-1)
-#
-#         issues_to_check_ready[issue_id] = {
-#             "header": header,
-#             "description": description,
-#             "todo": todo
-#         }
-#
-#     unknown_location = Issue.objects.filter(issue_type="group_issue:unknown_location",
-#                                             issue_status="not_resolved").all()
-#     ready_unknown_location = {}
-#     for issue in unknown_location:
-#         header = ". ".join(issue.issue_header.split("+++"))
-#         description = "\n".join(issue.issue_data.split("+++"))
-#         todo = "Поставте локацію в ЛМС."
-#         issue_id = issue.id
-#         roles = issue.issue_roles.split(";")
-#         roles.pop(-1)
-#
-#         if user_role == "admin":
-#             ready_unknown_location[issue_id] = {
-#                 "header": header,
-#                 "description": description,
-#                 "todo": todo
-#             }
-#
-#         if user_role == "territorial_manager" or user_role == "regional":
-#             for role in roles:
-#                 if role.startswith("territorial_manager"):
-#                     tm_name = role.split(":")[1]
-#                     rm_name = get_rm_by_tm(tm_name)
-#                     user_full_name = f"{request.user.last_name} {request.user.first_name}"
-#                     if user_full_name == tm_name or user_full_name == rm_name:
-#                         ready_unknown_location[issue_id] = {
-#                             "header": header,
-#                             "description": description,
-#                             "todo": todo
-#                         }
-#     html_template = loader.get_template('home/issues.html')
-#     context = {
-#         "segment": "issues",
-#         "user_role": user_role,
-#         "no_amo_id": ready_no_amo_id,
-#         "no_amo_id_to_check": issues_to_check_ready,
-#         "total_issues": len(ready_no_amo_id),
-#         "amo_to_check_total": len(issues_to_check_ready),
-#         "unknown_location": ready_unknown_location,
-#         "unknown_location_amount": len(ready_unknown_location)
-#     }
-#     return HttpResponse(html_template.render(context, request))
-
-
 def get_student_amo_id(student_id):
     url = f"https://lms.logikaschool.com/api/v2/student/default/view/{student_id}?id={student_id}&expand=lastGroup%2Cwallet%2Cbranch%2ClastGroup.branch%2CamoLead%2Cgroups%2Cgroups.b2bPartners"
     resp = requests.get(url, headers=library.headers)
@@ -4506,54 +4522,6 @@ def close_issue(request, issue_id):
     issue.issue_data += "Дія: Закрити без змін+++"
     issue.save()
     return redirect(issues_new)
-
-
-# @login_required(login_url="/login/")
-# def close_issue_reason(request, issue_id):
-#     html_template = loader.get_template("home/reason.html")
-#     issue: Issue = Issue.objects.filter(id=issue_id).first()
-#     url = "close"
-#     lms_id = issue.issue_description.split(";")[0]
-#     if request.method == "POST":
-#         form = ReasonForCloseForm(request.POST)
-#         if form.is_valid():
-#             reason = form.cleaned_data["reason"]
-#             issue.issue_roles = "admin;"
-#             issue.issue_status = "to_check"
-#             issue.issue_type = f"to_check:{issue.issue_type.split(':')[1]}"
-#             issue.issue_data += f"Причина: {reason}+++Дія: Закрити без змін+++"
-#             issue.save()
-#             return redirect(issues_new)
-#         else:
-#             form = ReasonForCloseForm()
-#             return HttpResponse(
-#                 html_template.render(
-#                     {
-#                         "segment": "issues",
-#                         "lms_id": lms_id,
-#                         "issue_id": issue_id,
-#                         "form": form,
-#                         "msg": "Потрібно ввести причину!",
-#                     },
-#                     request,
-#                 )
-#             )
-#
-#     else:
-#         form = ReasonForCloseForm()
-#         return HttpResponse(
-#             html_template.render(
-#                 {
-#                     "segment": "issues",
-#                     "lms_id": lms_id,
-#                     "issue_id": issue_id,
-#                     "form": form,
-#                     "msg": "",
-#                     "url": url,
-#                 },
-#                 request,
-#             )
-#         )
 
 
 @login_required(login_url="/login/")

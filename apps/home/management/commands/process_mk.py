@@ -360,7 +360,8 @@ class Command(BaseCommand):
                 regional_manager = None
                 territorial_manager = None
                 tutor = None
-
+            if students is None:
+                students = []
             for student in students:
                 print(str(student) + " " + str(datetime.now()))
                 report = StudentReport(

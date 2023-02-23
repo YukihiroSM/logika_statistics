@@ -60,8 +60,6 @@ class Command(BaseCommand):
         payments_data = response.json()
         for payment in payments_data:
             student_id = payment['КлиентID_БО']
-            if payment["ГородРегион"] != "Всеукр Онлайн":
-                continue
             business = "programming" if payment["НаправлениеБизнеса"] == "Школы программирования" else "english"
             if payment['Оплата'] < 500:
                 print(
