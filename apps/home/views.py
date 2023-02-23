@@ -309,18 +309,31 @@ def programming_new(request):
             .all()
         )
     elif get_user_role(request.user) == "territorial_manager_km":
-        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-        if manager is None:
-            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-        else:
+        try:
+            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            if manager is None:
+                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+            else:
 
+                reports = (
+                    StudentReport.objects.filter(
+                        start_date__gte=report_start,
+                        end_date__lte=report_end,
+                        is_duplicate=0,
+                        business="programming",
+                        territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    )
+                    .exclude(amo_id=None)
+                    .all()
+                )
+        except:
             reports = (
                 StudentReport.objects.filter(
                     start_date__gte=report_start,
                     end_date__lte=report_end,
                     is_duplicate=0,
                     business="programming",
-                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    territorial_manager=f"{request.user.last_name} {request.user.first_name}",
                 )
                 .exclude(amo_id=None)
                 .all()
@@ -730,22 +743,6 @@ def english_new(request):
             .all()
         )
     elif get_user_role(request.user) == "territorial_manager":
-        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-        if manager is None:
-            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-        else:
-            reports = (
-                StudentReport.objects.filter(
-                    start_date__gte=report_start,
-                    end_date__lte=report_end,
-                    is_duplicate=0,
-                    business="english",
-                    territorial_manager=f"{manager.last_name} {manager.first_name}",
-                )
-                .exclude(amo_id=None)
-                .all()
-            )
-    elif get_user_role(request.user) == "territorial_manager_km":
         reports = (
             StudentReport.objects.filter(
                 start_date__gte=report_start,
@@ -757,6 +754,37 @@ def english_new(request):
             .exclude(amo_id=None)
             .all()
         )
+
+    elif get_user_role(request.user) == "territorial_manager_km":
+        try:
+            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            if manager is None:
+                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+            else:
+                reports = (
+                    StudentReport.objects.filter(
+                        start_date__gte=report_start,
+                        end_date__lte=report_end,
+                        is_duplicate=0,
+                        business="english",
+                        territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    )
+                    .exclude(amo_id=None)
+                    .all()
+                )
+        except:
+            reports = (
+                StudentReport.objects.filter(
+                    start_date__gte=report_start,
+                    end_date__lte=report_end,
+                    is_duplicate=0,
+                    business="english",
+                    territorial_manager=f"{request.user.last_name} {request.user.first_name}",
+                )
+                .exclude(amo_id=None)
+                .all()
+            )
+
     all_locations = []
     territorial_managers = []
     all_client_managers = []
@@ -1054,17 +1082,30 @@ def programming_tutor_new(request):
             .all()
         )
     elif get_user_role(request.user) == "territorial_manager_km":
-        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-        if manager is None:
-            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-        else:
+        try:
+            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            if manager is None:
+                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+            else:
+                reports = (
+                    StudentReport.objects.filter(
+                        start_date__gte=report_start,
+                        end_date__lte=report_end,
+                        is_duplicate=0,
+                        business="programming",
+                        territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    )
+                    .exclude(amo_id=None)
+                    .all()
+                )
+        except:
             reports = (
                 StudentReport.objects.filter(
                     start_date__gte=report_start,
                     end_date__lte=report_end,
                     is_duplicate=0,
                     business="programming",
-                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    territorial_manager=f"{request.user.last_name} {request.user.first_name}",
                 )
                 .exclude(amo_id=None)
                 .all()
@@ -1317,16 +1358,28 @@ def english_tutor_new(request):
             .all()
         )
     elif get_user_role(request.user) == "territorial_manager_km":
-        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-        if manager is None:
-            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-        else:
+        try:
+            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            if manager is None:
+                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+            else:
+                reports = (
+                    StudentReport.objects.filter(
+                        start_date__gte=report_start,
+                        end_date__lte=report_end,
+                        business="english",
+                        territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    )
+                    .exclude(amo_id=None)
+                    .all()
+                )
+        except:
             reports = (
                 StudentReport.objects.filter(
                     start_date__gte=report_start,
                     end_date__lte=report_end,
                     business="english",
-                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    territorial_manager=f"{request.user.last_name} {request.user.first_name}",
                 )
                 .exclude(amo_id=None)
                 .all()
@@ -1571,17 +1624,30 @@ def programming_teacher_new(request):
             .order_by("location")
         )
     elif get_user_role(request.user) == "territorial_manager_km":
-        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-        if manager is None:
-            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-        else:
+        try:
+            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            if manager is None:
+                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+            else:
+                reports = (
+                    StudentReport.objects.filter(
+                        start_date__gte=report_start,
+                        end_date__lte=report_end,
+                        is_duplicate=0,
+                        business="programming",
+                        territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    )
+                    .exclude(amo_id=None)
+                    .order_by("location")
+                )
+        except:
             reports = (
                 StudentReport.objects.filter(
                     start_date__gte=report_start,
                     end_date__lte=report_end,
                     is_duplicate=0,
                     business="programming",
-                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    territorial_manager=f"{request.user.last_name} {request.user.first_name}",
                 )
                 .exclude(amo_id=None)
                 .order_by("location")
@@ -1608,11 +1674,16 @@ def programming_teacher_new(request):
         all_regionals = [regional]
         locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "territorial_manager_km":
-        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-        if manager is None:
-            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-        else:
-            regional = get_rm_by_tm(f"{manager.last_name} {manager.first_name}")
+        try:
+            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            if manager is None:
+                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+            else:
+                regional = get_rm_by_tm(f"{manager.last_name} {manager.first_name}")
+                all_regionals = [regional]
+                locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+        except:
+            regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
             all_regionals = [regional]
             locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "tutor":
@@ -1806,16 +1877,28 @@ def english_teacher_new(request):
             .order_by("location")
         )
     elif get_user_role(request.user) == "territorial_manager_km":
-        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-        if manager is None:
-            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-        else:
+        try:
+            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            if manager is None:
+                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+            else:
+                reports = (
+                    StudentReport.objects.filter(
+                        start_date__gte=report_start,
+                        end_date__lte=report_end,
+                        business="english",
+                        territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    )
+                    .exclude(amo_id=None)
+                    .order_by("location")
+                )
+        except:
             reports = (
                 StudentReport.objects.filter(
                     start_date__gte=report_start,
                     end_date__lte=report_end,
                     business="english",
-                    territorial_manager=f"{manager.last_name} {manager.first_name}",
+                    territorial_manager=f"{request.user.last_name} {request.user.first_name}",
                 )
                 .exclude(amo_id=None)
                 .order_by("location")
@@ -1842,10 +1925,15 @@ def english_teacher_new(request):
         all_regionals = [regional]
         locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "territorial_manager_km":
-        manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-        if manager is None:
-            return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-        else:
+        try:
+            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            if manager is None:
+                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+            else:
+                regional = get_rm_by_tm(f"{manager.last_name} {manager.first_name}")
+                all_regionals = [regional]
+                locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+        except:
             regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
             all_regionals = [regional]
             locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
