@@ -97,20 +97,20 @@ COURSES_READABLE = {
                      "МК Курс програмування Python УКР",
                      "Python Start 2021/2022 - 2й год", "Python Start 1-й год",
                      ],
-    "python pro": ["Python Pro 1-й рік УКР (2027)", ],
-    "scratch": ["МК Візуальне програмування УКР", "Python Pro 2й рік, УКР (курс 1554)",
+    "python pro": ["Python Pro 1-й рік УКР (2027)",  "Python Pro 2й рік, УКР (курс 1554)"],
+    "scratch": ["МК Візуальне програмування УКР",
                 "Мастер-класс, Визуальное программирование, офлайн",
                 "Визуальное программирование", "Візуальне програмування УКР"],
     "gamedesign": ["Геймдизайн", "Мастер-класс, Геймдизайн, офлайн", "МК онлайн Геймдизайн УКР (курс 707)",
                    "МК офлайн Геймдизайн УКР (курс 707)"
-                   "Геймдизайн УКР (курс 707)"],
+                   "Геймдизайн УКР (курс 707)", "МК Геймдизайн 2022/23 УКР"],
     "graphdesign": ["Графічний дизайн, 12-14, УКР (курс 1484)", "Графический дизайн, 12-14",
                     "Мастер-класс, Графический дизайн 12-14, онлайн/офлайн",
                     "Майстер-класс, Графічний дизайн УКР", ],
     "websites": ["Создание веб-сайтов", "Мастер-класс, Создание веб-сайтов, офлайн",
                  "Курс Створення сайтів - УКР (курс 716, 2021р)",
                  "МК для курсу Створення сайтів - УКР 2021 (1750)", "МК для курсу Створення сайтів - УКР (курс 716)",
-                 "Курс Створення сайтів - УКР (версія 2022)",
+                 "Курс Створення сайтів - УКР (версія 2022)","	МК Веб-сайти 22/23 УКР",
                  ],
     "comp_gram": ['МК "Комп_ютерна грамотність" УКР (курс 777) new'.replace("_", "'"),
                   "Мастер-класс, Компьютерная грамотность 2021/2022, офлайн"
@@ -122,23 +122,24 @@ COURSES_READABLE = {
                 "English Trial Lesson УКР (August'22)",
                 "ENGLISH Trial lesson (A2) Укр", "Trial Lesson for A2", "ENGLISH Level A2 Укр",
                 "ENGLISH Test (trial lesson) Укр",
-                "Trial lesson for ADULTS", "Trial Lesson for A1", "ENGLISH Level A1 Укр"]
+                "Trial lesson for ADULTS", "Trial Lesson for A1", "ENGLISH Level A1 Укр", "ENGLISH Level A0 Укр",
+                "English Trial Lesson УКР (August'22)"]
 }
 
 
 COURSES_IDS = {
     "programming": {
-        "python start": [2066, 1765, 1600, 1493, 853, 816, 796, 733, 706, 686, 683, 633, 410, 406, 361, 305, 277, 248, 2333],
-        "python pro": [2120, 2051, 1996, 1554, 1459, 854, 817, 783, 734, 405, 389, 2333],
+        "python start": [2066, 1765, 1600, 1493, 853, 816, 796, 733, 706, 686, 683, 633, 410, 406, 361, 305, 277, 248],
+        "python pro": [2120, 2051, 1996, 1554, 1459, 854, 817, 783, 734, 405, 389, 2120],
         "scratch": [810, 799, 582, 563, 468, 467, 466, 390, 385, ],
-        "gamedesign": [1962, 1948, 1602, 1601, 1371, 902, 901, 809, 707, 2333, ],
+        "gamedesign": [1962, 1948, 1602, 1601, 1371, 902, 901, 809, 707,  2299],
         "graphdesign": [2078, 1995, 1543, 1484, 1387, ],
-        "websites": [1957, 1818, 1604, 1603, 797, 716, 2333, ],
+        "websites": [1957, 1818, 1604, 1603, 797, 716,2298 ],
         "comp_gram": [1398, 897, 896, 777, 729, 606, 603, 465, 417, 408, ],
         "video_blogging": [1571, 1570, 1386, ],
         "unity": [1710, 1688, 1686, ]
     },
-    "english": [2184, 2069, 2054, 1865, 1864, 1833, 1825, 1809, 1805, 2333, 2333, 2333]
+    "english": [2184, 2069, 2054, 1865, 1864, 1833, 1825, 1809, 1805, 2333, 2292, 2184]
 }
 
 month = "Вересень"
@@ -152,7 +153,7 @@ headers = {
     'authority': 'lms.logikaschool.com',
     'accept': 'application/json, text/plain, */*',
     'accept-language': 'en-US,en;q=0.9,uk;q=0.8',
-    'cookie': '_ym_uid=1663926215718852102; _ym_d=1663926215; _ga=GA1.2.1045060559.1663926216; intercom-device-id-ufjpx6k3=3f4dd25f-d779-4461-b7cf-91fab5939733; _csrf=2c1960119e057672b7ddafe1b5610adf8d19b0f85c3d5ea523e48bdad8f51087a:2:{i:0;s:5:"_csrf";i:1;s:32:"H4_6b2stVu6B_csL1pfbGX7nJNepPfzC";}; userId=23319; sidebar-state=expanded; previousPage=/group?GroupSearch%5Bid%5D=&GroupSearch%5Btitle%5D=&GroupSearch%5Bvenue%5D=&GroupSearch%5Bteacher%5D=&GroupSearch%5Bcurator%5D=&GroupSearch%5Btype%5D=&GroupSearch%5Bstatus%5D=&GroupSearch%5Bcourse%5D=&GroupSearch%5Bcreated_at%5D%5Bop%5D=gt&GroupSearch%5Bcreated_at%5D%5Bdate%5D=22%2F01%2F23&GroupSearch%5Bbranch%5D=; createdTimestamp=1676024715; accessToken=751b4e2c3ccc7594466fe83e8e2caf11476d31f0bf6ad8425a7049cb72889691; SERVERID=b420; _backendMainSessionId=f8114a3c5232131ac43f808e7d4bd4a5; _gid=GA1.2.1119452515.1676024749; _gat_gtag_UA_122842599_49=1',
+    'cookie': '_ym_uid=1663926215718852102; _ym_d=1663926215; _ga=GA1.2.1045060559.1663926216; intercom-device-id-ufjpx6k3=3f4dd25f-d779-4461-b7cf-91fab5939733; _csrf=2c1960119e057672b7ddafe1b5610adf8d19b0f85c3d5ea523e48bdad8f51087a:2:{i:0;s:5:"_csrf";i:1;s:32:"H4_6b2stVu6B_csL1pfbGX7nJNepPfzC";}; userId=23319; intercom-session-ufjpx6k3=RzZTa3VDTG9oZEQ2SHNZLzliRzd3RXhKQWdJVFI1UUFZaW5VRm1KZ2JEL3NUMDJnc3B0elJFSklpZy8zY3pTai0teVVLRzl6TG1qK0ZvWkFPcndvbjZrUT09--0db307785560a495cbd0f14c47d575af0c220e81; previousPage=/group?GroupSearch%5Bid%5D=&GroupSearch%5Btitle%5D=&GroupSearch%5Bvenue%5D=&GroupSearch%5Bteacher%5D=&GroupSearch%5Bcurator%5D=&GroupSearch%5Btype%5D=&GroupSearch%5Bstatus%5D=&GroupSearch%5Bcourse%5D=&GroupSearch%5Bcreated_at%5D%5Bop%5D=gt&GroupSearch%5Bcreated_at%5D%5Bdate%5D=05%2F02%2F23&GroupSearch%5Bbranch%5D=; createdTimestamp=1676887573; accessToken=4338893ff0355a92e68dc1e71007091e422c867b201d28f7c850fc87ae246c02; SERVERID=b450; _backendMainSessionId=7e6c9c1860c9c05beec9871c6e1b3fa6; _gid=GA1.2.336459467.1676887609; _gat_gtag_UA_122842599_49=1',
     'referer': f'https://lms.logikaschool.com/',
     'sec-ch-ua': '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
     'sec-ch-ua-mobile': '?1',

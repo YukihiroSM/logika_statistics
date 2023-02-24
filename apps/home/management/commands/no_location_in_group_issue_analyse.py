@@ -36,7 +36,10 @@ class Command(BaseCommand):
             i += 1
             group_id = issue.issue_description
             group = GlobalGroup.objects.filter(lms_id=group_id).first()
-            client_manager = group.client_manager
+            if not group:
+                client_manager = None
+            else:
+                client_manager = group.client_manager
             location_obj = None
             if client_manager:
                 location_obj = Location.objects.filter(client_manager=client_manager).first()
