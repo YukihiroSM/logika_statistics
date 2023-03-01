@@ -21,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """ Do your work here """
         start_dates = json.loads(os.environ.get("start_dates"))
-        issues = Issue.objects.filter(issue_type="student_issue:no_amo_id", report_start__in=start_dates).all()
+        issues = Issue.objects.filter(issue_type="student_issue:no_amo_id", report_start__in=start_dates, issue_status="not_resolved").all()
         i = 1
         for issue in issues:
             print(f"Processing issue {i}/{len(issues)}")

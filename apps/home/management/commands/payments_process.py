@@ -74,8 +74,7 @@ class Command(BaseCommand):
                     issue_roles="admin;"
                 )
                 existing_issue = Issue.objects.filter(issue_type=issue.issue_type,
-                                                      issue_description=issue.issue_description,
-                                                      report_start=issue.report_start).first()
+                                                      issue_description=issue.issue_description).first()
                 if existing_issue:
                     print("ISSUE ALREADY EXISTS", issue.issue_description)
                 else:
@@ -143,8 +142,7 @@ class Command(BaseCommand):
                         issue_roles=""
                     )
                     existing_issue = Issue.objects.filter(issue_type=issue.issue_type,
-                                                          issue_description=issue.issue_description,
-                                                          report_start=issue.report_start).first()
+                                                          issue_description=issue.issue_description).first()
                     if existing_issue:
                         print("ISSUE ALREADY EXISTS", issue.issue_description)
                     else:
@@ -242,7 +240,7 @@ class Command(BaseCommand):
                     issue_roles="admin;"
                 )
                 existing_issue = Issue.objects.filter(issue_type=issue.issue_type,
-                                                      issue_description=issue.issue_description, report_start=issue.report_start).first()
+                                                      issue_description=issue.issue_description).first()
                 if existing_issue:
                     print("ISSUE ALREADY EXISTS", issue.issue_description)
                 else:
