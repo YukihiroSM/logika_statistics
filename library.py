@@ -1,4 +1,11 @@
 import os
+import pickle
+from pathlib import Path
+
+import requests
+
+from core.settings import BASE_DIR
+
 REGIONS = {
     "chernivtsi_region": {
         "amo_reports": "amo_reports/chernivtsi_region",
@@ -89,36 +96,83 @@ COURSES = {
                 ]
 }
 
+
 COURSES_READABLE = {
-    "python start": ['Мастер-класс для курса "Python Start" 2020/2021',
+    "python start": ['Курс програмування Python Start 2020/2021 - 2й рік - УКР',
+                     'Python Start 1-й год',
+                     'Мастер-класс для курса "Python Start" 2020/2021',
+                     'МК Курс програмування Python УКР',
+                     'Python Start 2021/2022 - 2й год',
+                     'Курс програмування Python Start 2020/2021 - 1й рік - УКР (версія 2020)',
+                     'Python Start_1_ENG',
+                     'Курс програмування Python Start 2021/2022 - 1й рік - УКР (версія 2021)',
+                     'Мастер-класс для курса "Python Start" 2020/2021',
                      "Курс програмування Python Start 2020/2021 - 2й рік - УКР",
                      "Курс програмування Python Start 2020/2021 - 1й рік - УКР (версія 2020)",
                      "Курс програмування Python Start 2021/2022 - 1й рік - УКР (версія 2021)",
                      "МК Курс програмування Python УКР",
                      "Python Start 2021/2022 - 2й год", "Python Start 1-й год",
                      ],
-    "python pro": ["Python Pro 1-й рік УКР (2027)",  "Python Pro 2й рік, УКР (курс 1554)"],
-    "scratch": ["МК Візуальне програмування УКР",
+    "python pro": ['Python Pro 1-й год',
+                   'IL_Python Pro_1_ENG',
+                   'Python Pro 2й рік, УКР (курс 1554)', 'Python Pro 1-й рік УКР (2027)', "Python Pro 1-й рік УКР (2027)",  "Python Pro 2й рік, УКР (курс 1554)"],
+    "scratch": ['Візуальне програмування УКР',
+                'IL_Visual Programing_ENG',
+                'Визуальное программирование',
+                'МК Візуальне програмування УКР',
+                'Мастер-класс, Визуальное программирование, офлайн',
+                "МК Візуальне програмування УКР",
                 "Мастер-класс, Визуальное программирование, офлайн",
                 "Визуальное программирование", "Візуальне програмування УКР"],
-    "gamedesign": ["Геймдизайн", "Мастер-класс, Геймдизайн, офлайн", "МК онлайн Геймдизайн УКР (курс 707)",
+    "gamedesign": ['Мастер-класс, Геймдизайн, офлайн',
+                   'Геймдизайн',
+                   'Геймдизайн УКР (курс 707)',
+                   'МК офлайн Геймдизайн УКР (курс 707)',
+                   'МК Геймдизайн 2022/23 УКР',
+                   'МК онлайн Геймдизайн УКР (курс 707)',
+                   "Геймдизайн", "Мастер-класс, Геймдизайн, офлайн", "МК онлайн Геймдизайн УКР (курс 707)",
                    "МК офлайн Геймдизайн УКР (курс 707)"
                    "Геймдизайн УКР (курс 707)", "МК Геймдизайн 2022/23 УКР"],
-    "graphdesign": ["Графічний дизайн, 12-14, УКР (курс 1484)", "Графический дизайн, 12-14",
+    "graphdesign": ['Графический дизайн, 12-14',
+                    'Майстер-класс, Графічний дизайн УКР',
+                    'Мастер-класс, Графический дизайн 12-14, онлайн/офлайн',
+                    'Графічний дизайн, 12-14, УКР (курс 1484)',
+                    "Графічний дизайн, 12-14, УКР (курс 1484)", "Графический дизайн, 12-14",
                     "Мастер-класс, Графический дизайн 12-14, онлайн/офлайн",
                     "Майстер-класс, Графічний дизайн УКР", ],
-    "websites": ["Создание веб-сайтов", "Мастер-класс, Создание веб-сайтов, офлайн",
+    "websites": ['Курс Створення сайтів - УКР (курс 716, 2021р)',
+                 'Курс Створення сайтів - УКР (версія 2022)',
+                 'МК для курсу Створення сайтів - УКР (курс 716)',
+                 'Создание веб-сайтов',
+                 'МК для курсу Створення сайтів - УКР 2021 (1750)',
+                 'Мастер-класс, Создание веб-сайтов, офлайн', 'МК Веб-сайти 22/23 УКР', "Создание веб-сайтов", "Мастер-класс, Создание веб-сайтов, офлайн",
                  "Курс Створення сайтів - УКР (курс 716, 2021р)",
                  "МК для курсу Створення сайтів - УКР 2021 (1750)", "МК для курсу Створення сайтів - УКР (курс 716)",
                  "Курс Створення сайтів - УКР (версія 2022)","	МК Веб-сайти 22/23 УКР",
                  ],
-    "comp_gram": ['МК "Комп_ютерна грамотність" УКР (курс 777) new'.replace("_", "'"),
+    "comp_gram": ['Курс КГ для дорослих Україна',
+                  'Компьютерная грамотность',
+                  'Мастер-класс, Компьютерная грамотность 2021/2022, офлайн',
+                  'МК "Комп\'ютерна грамотність" УКР (курс 777) new',
+                  "Комп'ютерна грамотність УКР (курс 729) new", 'МК "Комп_ютерна грамотність" УКР (курс 777) new'.replace("_", "'"),
                   "Мастер-класс, Компьютерная грамотность 2021/2022, офлайн"
                   "Курс КГ для дорослих Україна", "Компьютерная грамотность",
                   "Комп'ютерна грамотність УКР (курс 729) new"],
-    "video_blogging": ["Мастер-класс, Видеоблогинг, офлайн", ],
+    "video_blogging": ['Мастер-класс, Видеоблогинг, офлайн',
+                       "Мастер-класс, Видеоблогинг, офлайн", ],
     "unity": [],
-    "english": ["Пробный курс английский", "ENGLISH Trial lesson (A1) Укр", "ENGLISH Level A0 Укр",
+    "english": ['Trial Lesson for A1',
+                'ENGLISH Level A0 Укр',
+                'ENGLISH Trial lesson (A2) Укр',
+                "English Trial Lesson УКР (August'22)",
+                'Пробный курс английский',
+                'Trial Lesson for A2',
+                'ENGLISH Test (trial lesson) Укр',
+                'ENGLISH Level A2 Укр',
+                'ENGLISH Level A1 Укр',
+                'Trial lesson for ADULTS',
+                'ENGLISH Trial lesson (A1) Укр',
+                "Пробный курс английский", "ENGLISH Trial lesson (A1) Укр", "ENGLISH Level A0 Укр",
                 "English Trial Lesson УКР (August'22)",
                 "ENGLISH Trial lesson (A2) Укр", "Trial Lesson for A2", "ENGLISH Level A2 Укр",
                 "ENGLISH Test (trial lesson) Укр",
@@ -172,7 +226,7 @@ payments_headers = {
 'cache-control': 'max-age=0',
 'connection': 'keep-alive',
 'cookie': 'csrftoken=GdRKKw4MQiRoead7ZsgWskcxst187rsW; sessionid=7s2mqayratnrlzs8d8hne51wf61ea0ki',
-'host': 'school.cloud24.com.ua:22443',
+'host': 'localhost:22443',
 'sec-ch-ua': '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
 'sec-ch-ua-mobile': '?1',
 'sec-ch-ua-platform': 'Android',
@@ -224,3 +278,20 @@ def get_course_by_course_name(lms_course, translate=False):
                 return courses_translated[course]
             return course
     return "unknown"
+
+
+def lms_auth():
+    session = requests.Session()
+
+    login_payload = {"login": "statistics", "password": "2dfK2drifC9Bci9"}
+    resp = session.post("https://lms.logikaschool.com/s/auth/api/e/user/auth", data=login_payload)
+    if resp.ok:
+        session_file_path = Path(BASE_DIR, "session.pickle")
+        with open(session_file_path, "wb") as handler:
+            pickle.dump(session, handler, protocol=pickle.DEFAULT_PROTOCOL)
+        print("Session creation is successful!")
+        return session
+
+    else:
+        raise Exception("Unable to renew cookies. Something gone wrong in auth process")
+

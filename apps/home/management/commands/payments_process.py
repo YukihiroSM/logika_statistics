@@ -59,6 +59,8 @@ class Command(BaseCommand):
         response = requests.get(url, headers=library.payments_headers, verify=False)
         payments_data = response.json()
         for payment in payments_data:
+            print()
+
             student_id = payment['КлиентID_БО']
             business = "programming" if payment["НаправлениеБизнеса"] == "Школы программирования" else "english"
             if payment['Оплата'] < 500:
