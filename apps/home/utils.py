@@ -35,9 +35,13 @@ def parse_groups_portion(group_ids):
                 backup_online_room_url = link_data.get('backupOnlineRoomUrl', dict())
                 link = backup_online_room_url.get('url')
                 next_lesson_time = data.get('next_lesson_time')
+                teacher = data.get('teacher', dict())
+                teacher_name = teacher.get('name')
                 result.append({'group': group_id,
                                'link': link,
-                               'next_lesson_time': next_lesson_time})
+                               'next_lesson_time': next_lesson_time,
+                               'teacher_name': teacher_name})
+
             else:
                 print(f'Bad request! Response [{group_data_response.status_code}].')
 
