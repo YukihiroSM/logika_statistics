@@ -184,3 +184,21 @@ class UsersMapping(models.Model):
     related_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name="related_user_id", null=True)
     auth_token = models.CharField(max_length=256, null=True)
     login_timestamp = models.DateTimeField(null=True)
+
+
+class LessonsConsolidation(models.Model):
+    payment_location = models.CharField(max_length=256, null=True)
+    lms_location = models.CharField(max_length=256, null=True)
+    lms_group_id = models.CharField(max_length=16, null=True)
+    lms_student_id = models.CharField(max_length=16, null=True)
+    lms_student_name = models.CharField(max_length=256, null=True)
+    payment_student_name = models.CharField(max_length=256, null=True)
+    payment_total = models.IntegerField(null=True)
+    lms_total = models.IntegerField(null=True)
+    lms_group_label = models.CharField(max_length=256, null=True)
+    payment_group_label = models.CharField(max_length=256, null=True)
+    start_date = models.DateField(null=True)
+    end_date = models.DateField(null=True)
+    status = models.CharField(max_length=256, null=True, default="todo")
+    comment = models.CharField(max_length=256, null=True)
+

@@ -36,9 +36,13 @@ urlpatterns = [
     path('assign_issue_tutor/<str:issue_id>', views.assign_issue_tutor, name='home'),
     path('add_teacher_for_group/<str:issue_id>', views.add_teacher_for_group, name='home'),
     path('revert_issue/<str:issue_id>', views.revert_issue, name='home'),
+    path('consolidation_issue_resolve/<str:issue_id>', views.consolidation_issue_resolve, name='home'),
+    path('consolidation_issue_close/<str:issue_id>', views.consolidation_issue_close, name='home'),
     path('admin_menu', views.admin_page, name='home'),
     path('extended_report_programming', views.extended_programming_report, name='home'),
     path('health', views.health, name='home'),
+    path('programming_test', views.programming_report, name="home"),
+    path('consolidation', views.consolidation_report, name="home"),
     path('', views.home, name='home'),
 
     # Matches any html file
