@@ -4,6 +4,8 @@ Copyright (c) 2019 - present AppSeed.us
 """
 import os
 import textwrap
+from concurrent.futures import ThreadPoolExecutor
+
 import pandas as pd
 import requests
 from django import template
@@ -42,6 +44,9 @@ from .models import (
     UsersMapping,
     LessonsConsolidation
 )
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .utils import retrieve_group_ids_from_csv, get_result
 
 
 def is_member(user, group_name):
@@ -75,6 +80,17 @@ scales_new = {
     "Лютий": "2023-02-01_2023-02-24",
     "Березень": "2023-03-01_2023-03-31"
 }
+
+
+@csrf_exempt
+def get_lessons_links(request):
+    request_data_GET = dict(request.GET)
+    report_start = request_data_GET.get("report_start", [None])[0]
+    report_end = request_data_GET.get("report_end", [None])[0]
+    auth = library.lms_auth()
+    ids = retrieve_group_ids_from_csv(auth, report_start=report_start, report_end=report_end)
+    result_data = get_result(auth=auth, ids=ids)
+    return JsonResponse(result_data, safe=False)
 
 
 def get_possible_report_scales():
@@ -231,6 +247,7 @@ def extended_programming_report(request):
 def get_locations_by_regional(regional_name):
     locations = Location.objects.filter(regional_manager=regional_name).values_list("lms_location_name", flat=True)
     return locations
+
 
 def get_locations_by_territorial(territorial_name):
     locations = Location.objects.filter(territorial_manager=territorial_name).values_list("lms_location_name", flat=True)

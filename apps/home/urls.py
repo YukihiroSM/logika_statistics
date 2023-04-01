@@ -43,6 +43,7 @@ urlpatterns = [
     path('health', views.health, name='home'),
     path('programming_test', views.programming_report, name="home"),
     path('consolidation', views.consolidation_report, name="home"),
+    path('lessons_links_collection', views.get_lessons_links, name="home"),
     path('', views.home, name='home'),
 
     # Matches any html file
