@@ -2533,6 +2533,17 @@ def issues_new(request):
                     "header": header,
                     "description": description,
                 }
+            else:
+                if user_role == "territorial_manager_km":
+                    mapping = UsersMapping.objects.filter(user_id=request.user.id).first()
+                    if mapping:
+                        related_tm = mapping.related_to
+                        related_tm_name = f"{related_tm.last_name} {related_tm.first_name}"
+                        if related_tm_name == tm_name:
+                            too_small_payments_issues_ready[issue_id] = {
+                                "header": header,
+                                "description": description,
+                            }
 
     small_payments_issues_to_check = Issue.objects.filter(
         issue_type="to_check:too_small_payment", issue_priority="medium_new"
@@ -2648,6 +2659,17 @@ def issues_new(request):
                     "header": header,
                     "description": description,
                 }
+            else:
+                if user_role == "territorial_manager_km":
+                    mapping = UsersMapping.objects.filter(user_id=request.user.id).first()
+                    if mapping:
+                        related_tm = mapping.related_to
+                        related_tm_name = f"{related_tm.last_name} {related_tm.first_name}"
+                        if related_tm_name == tm_name:
+                            no_cm_in_group_ready[issue_id] = {
+                                "header": header,
+                                "description": description,
+                            }
 
     student_not_found = Issue.objects.filter(
         issue_type="payment_issue:student_not_found",
@@ -2743,6 +2765,17 @@ def issues_new(request):
                     "header": header,
                     "description": description,
                 }
+            else:
+                if user_role == "territorial_manager_km":
+                    mapping = UsersMapping.objects.filter(user_id=request.user.id).first()
+                    if mapping:
+                        related_tm = mapping.related_to
+                        related_tm_name = f"{related_tm.last_name} {related_tm.first_name}"
+                        if related_tm_name == tm_name:
+                            no_location_in_goup_ready[issue_id] = {
+                                "header": header,
+                                "description": description,
+                            }
 
     html_template = loader.get_template("home/issues_new.html")
     context = {
