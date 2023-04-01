@@ -93,7 +93,7 @@
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script>
   $(document).ready(function() {
-    $('#myTable').DataTable({
+    var table = $('#myTable').DataTable({
       dom: 'lBfrtip',
       buttons: [
         'columnsToggle'
@@ -109,7 +109,7 @@
           var newCell = $('<th>').appendTo(newRow);
 
           // Create the select element
-          var select = $('<select><option value=""></option></select>')
+          var select = $('<select id=location-select><option value=""></option></select>')
             .appendTo(newCell)
             .on('change', function () {
               var val = $.fn.dataTable.util.escapeRegex(
@@ -119,16 +119,26 @@
               column
                 .search( val ? '^'+val+'$' : '', true, false )
                 .draw();
+
+              // Save the selected option to Local Storage on change
+              localStorage.setItem("location-select", $(this).val());
             });
 
           column.data().unique().sort().each( function ( d, j ) {
             select.append('<option value="'+d+'">'+d+'</option>');
           });
         });
+
+        // Load the selected option from Local Storage
+        var selectedOption = localStorage.getItem("location-select");
+        if (selectedOption) {
+          $("#location-select").val(selectedOption).trigger("change");
+        }
       }
     });
   });
 </script>
+
 
 
 {% endblock javascripts %}
