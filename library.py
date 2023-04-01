@@ -226,7 +226,7 @@ payments_headers = {
 'cache-control': 'max-age=0',
 'connection': 'keep-alive',
 'cookie': 'csrftoken=GdRKKw4MQiRoead7ZsgWskcxst187rsW; sessionid=7s2mqayratnrlzs8d8hne51wf61ea0ki',
-'host': 'school.cloud24.com.ua:22443',
+'host': 'localhost:22443',
 'sec-ch-ua': '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
 'sec-ch-ua-mobile': '?1',
 'sec-ch-ua-platform': 'Android',
