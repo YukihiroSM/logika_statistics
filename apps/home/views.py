@@ -2420,11 +2420,22 @@ def issues_new(request):
                 continue
             rm_name = get_rm_by_tm(tm_name)
             user_full_name = f"{request.user.last_name} {request.user.first_name}"
-            if (user_full_name == tm_name and user_role.startswith("territorial_manager")) or (user_full_name == rm_name and user_role=="regional"):
+            if (user_full_name == tm_name and user_role == "territorial_manager") or (user_full_name == rm_name and user_role=="regional"):
                 ready_no_amo_id[issue_id] = {
                     "header": header,
                     "description": description,
                 }
+            if user_role == "territorial_manager_km":
+                mapping = UsersMapping.objects.filter(user_id=request.user.id).first()
+                if mapping:
+                    related_tm = mapping.related_to
+                    related_tm_name = f"{related_tm.last_name} {related_tm.first_name}"
+                    if related_tm_name == tm_name:
+                        ready_no_amo_id[issue_id] = {
+                            "header": header,
+                            "description": description,
+                        }
+
 
     issues_to_check = Issue.objects.filter(
         issue_type="to_check:no_amo_id", issue_priority="medium_new"
