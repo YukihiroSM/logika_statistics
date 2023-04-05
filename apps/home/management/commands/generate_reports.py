@@ -52,6 +52,8 @@ class Command(BaseCommand):
         location_regionals = Location.objects.filter(lms_location_name=location).values_list("regional_manager", flat=True).distinct()
         return location_regionals
 
+
+
     def handle(self, *args, **options):
         start_date = datetime.strptime(os.environ.get("start_date"), "%Y-%m-%d").date()
         end_date = datetime.strptime(os.environ.get("end_date"), "%Y-%m-%d").date()
@@ -66,6 +68,9 @@ class Command(BaseCommand):
                     continue
                 for client_manager in client_managers:
                     if not(regional_manager in self.get_rm_by_cm(client_manager)):
+                        continue
+                    if not territorial_manager in Location.objects.filter(client_manager=client_manager).values_list(
+                            "territorial_manager", flat=True).distinct():
                         continue
                     payments = len(reports.filter(business="programming", client_manager=client_manager,
                                                   territorial_manager=territorial_manager,
@@ -98,6 +103,9 @@ class Command(BaseCommand):
 
                 for location in locations:
                     if not(regional_manager in self.get_rm_by_location(location)):
+                        continue
+                    if not (territorial_manager in Location.objects.filter(lms_location_name=location).values_list(
+                            "territorial_manager", flat=True).distinct()):
                         continue
                     payments = len(reports.filter(business="programming", location=location,
                                                   territorial_manager=territorial_manager,
