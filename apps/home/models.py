@@ -202,3 +202,42 @@ class LessonsConsolidation(models.Model):
     status = models.CharField(max_length=256, null=True, default="todo")
     comment = models.CharField(max_length=256, null=True)
 
+
+class LocationReport(models.Model):
+    location_name = models.CharField(max_length=256, null=True)
+    client_manager = models.CharField(max_length=256, null=True)
+    territorial_manager = models.CharField(max_length=256, null=True)
+    regional_manager = models.CharField(max_length=256, null=True)
+    business = models.CharField(max_length=128, null=True)
+    total_attended = models.IntegerField()
+    total_payments = models.IntegerField()
+    conversion = models.FloatField()
+    total_enrolled = models.IntegerField()
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+
+
+class ClientManagerReport(models.Model):
+    client_manager = models.CharField(max_length=256, null=True)
+    territorial_manager = models.CharField(max_length=256, null=True)
+    regional_manager = models.CharField(max_length=256, null=True)
+    business = models.CharField(max_length=128, null=True)
+    total_attended = models.IntegerField()
+    total_payments = models.IntegerField()
+    conversion = models.FloatField()
+    total_enrolled = models.IntegerField()
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+
+
+class CourseReport(models.Model):
+    course = models.CharField(max_length=256, null=True)
+    regional_manager = models.CharField(max_length=256, null=True)
+    territorial_manager = models.CharField(max_length=256, null=True)
+    business = models.CharField(max_length=128, null=True)
+    total_attended = models.IntegerField()
+    total_payments = models.IntegerField()
+    conversion = models.FloatField()
+    total_enrolled = models.IntegerField()
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
