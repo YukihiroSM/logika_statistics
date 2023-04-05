@@ -17,6 +17,13 @@
                             class="pcoded-mtext">Меню Адміністратора</span></a>
                 </li>
                 {% endif %}
+            {% if user_role == "admin" or user_group == "admin" %}
+                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
+                    class="nav-item {% if 'programming_new' in segment %} active {% endif %}">
+                    <a href="/programming_updated" class="nav-link "><span class="pcoded-micon"><i class="feather icon-home"></i></span><span
+                            class="pcoded-mtext">Updated Report</span></a>
+                </li>
+                {% endif %}
             {% if user_role == "territorial_manager" or user_group == "territorial_manager" or user_role == "regional" or user_group == "regional" or user_role == "admin" or user_group == "admin" %}
                 <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
                     class="nav-item {% if 'consolidation' in segment %} active {% endif %}">
