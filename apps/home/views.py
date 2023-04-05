@@ -42,7 +42,9 @@ from .models import (
     GlobalGroup,
     StudentReport,
     UsersMapping,
-    LessonsConsolidation
+    LessonsConsolidation,
+    ClientManagerReport,
+    LocationReport,
 )
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -332,6 +334,63 @@ def consolidation_issue_close(request, issue_id):
                 request,
             )
         )
+
+
+@login_required(login_url="/login/")
+def programming_report_updated(request):
+    month_report = None
+    possible_report_scales = get_possible_report_scales()
+    if request.method == "POST":
+        form = ReportDateForm(request.POST)
+        if form.is_valid():
+            try:
+                report_start, report_end = form.cleaned_data["report_scale"].split(
+                    " - "
+                )
+            except ValueError:
+                month_report = form.cleaned_data["report_scale"]
+        else:
+            report_start, report_end = possible_report_scales[-1].split(" - ")
+    else:
+        report_start, report_end = possible_report_scales[-1].split(" - ")
+    if not month_report:
+        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
+        report_date_default = f"{report_start} - {report_end}"
+    else:
+        report_start, report_end = scales_new[month_report].split("_")
+        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
+        report_date_default = f"{report_start} - {report_end}"
+
+
+    user_role = get_user_role(request.user)
+    # if user_role == "admin":
+    location_reports = LocationReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end).all()
+    client_manager_reports = ClientManagerReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end).all()
+    territorial_managers = StudentReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end).exclude(territorial_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
+    managers = {}
+    for tm in territorial_managers:
+        rm = get_rm_by_tm(tm)
+        if rm is not None:
+            if rm in managers:
+                managers[rm].append(tm)
+            else:
+                managers[rm] = [tm]
+    context = {
+        "segment": "programming_new",
+        "report_date_default": report_date_default,
+        "username": request.user.username,
+        "report_scales": possible_report_scales,
+        "user_group": get_user_role(request.user),
+        "location_reports": location_reports,
+        "managers": managers,
+        "client_manager_reports": client_manager_reports,
+        "user_role": user_role,
+        # "reports_by_course": formatted_courses
+    }
+    html_template = loader.get_template("home/report_programming_updated.html")
+    return HttpResponse(html_template.render(context, request))
 
 
 @login_required(login_url="/login/")
