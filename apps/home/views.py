@@ -366,26 +366,26 @@ def programming_report_updated(request):
 
     user_role = get_user_role(request.user)
     if user_role == "admin":
-        location_reports = LocationReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end).all()
+        location_reports = LocationReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         client_manager_reports = ClientManagerReport.objects.filter(start_date__gte=report_start,
-                                                                    end_date__lte=report_end).all()
+                                                                    end_date__lte=report_end).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         territorial_managers = StudentReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end).exclude(
             territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
     elif user_role == "regional":
         user_name = f"{request.user.last_name} {request.user.first_name}"
-        location_reports = LocationReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end, regional_manager=user_name).all()
+        location_reports = LocationReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end, regional_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         client_manager_reports = ClientManagerReport.objects.filter(start_date__gte=report_start,
-                                                                    end_date__lte=report_end, regional_manager=user_name).all()
+                                                                    end_date__lte=report_end, regional_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         territorial_managers = StudentReport.objects.filter(start_date__gte=report_start,
                                                             end_date__lte=report_end, regional_manager=user_name).exclude(
             territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
     elif user_role == "territorial_manager":
         user_name = f"{request.user.last_name} {request.user.first_name}"
         location_reports = LocationReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end,
-                                                         territorial_manager=user_name).all()
+                                                         territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         client_manager_reports = ClientManagerReport.objects.filter(start_date__gte=report_start,
                                                                     end_date__lte=report_end,
-                                                                    territorial_manager=user_name).all()
+                                                                    territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         territorial_managers = StudentReport.objects.filter(start_date__gte=report_start,
                                                             end_date__lte=report_end,
                                                             territorial_manager=user_name).exclude(
@@ -394,10 +394,10 @@ def programming_report_updated(request):
         user_mapping = UsersMapping.objects.filter(user=request.user).first()
         user_name = f"{user_mapping.related_to.last_name} {user_mapping.related_to.first_name}"
         location_reports = LocationReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end,
-                                                         territorial_manager=user_name).all()
+                                                         territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         client_manager_reports = ClientManagerReport.objects.filter(start_date__gte=report_start,
                                                                     end_date__lte=report_end,
-                                                                    territorial_manager=user_name).all()
+                                                                    territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         territorial_managers = StudentReport.objects.filter(start_date__gte=report_start,
                                                             end_date__lte=report_end,
                                                             territorial_manager=user_name).exclude(
@@ -411,7 +411,7 @@ def programming_report_updated(request):
     totals_rm = {}
     ukrainian_totals = {"Ukraine": {"attended": 0, "payments": 0, "enrolled": 0}}
     for report in client_manager_reports:
-        if report.territorial_manager != None and report.territorial_manager != "UNKNOWN":
+        if report.territorial_manager is not None and report.territorial_manager != "UNKNOWN":
             if report.territorial_manager in totals_tm:
                 totals_tm[report.territorial_manager]["attended"] += report.total_attended
                 totals_tm[report.territorial_manager]["payments"] += report.total_payments
