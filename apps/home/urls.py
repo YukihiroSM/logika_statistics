@@ -9,7 +9,7 @@ from apps.home import views
 urlpatterns = [
     path('english_new', views.english_new, name='home'),
     path('', views.home, name='home'),
-    path('programming_new', views.programming_new, name='home'),
+    path('programming_new', views.programming_report_updated, name='home'),
     path('issues', views.issues_new, name='home'),
     path('issues_new', views.issues_new, name='home'),
     path('issues_tutors', views.issues_tutors, name='home'),
