@@ -411,29 +411,30 @@ def programming_report_updated(request):
     totals_rm = {}
     ukrainian_totals = {"Ukraine": {"attended": 0, "payments": 0, "enrolled": 0}}
     for report in client_manager_reports:
-        if report.territorial_manager in totals_tm:
-            totals_tm[report.territorial_manager]["attended"] += report.total_attended
-            totals_tm[report.territorial_manager]["payments"] += report.total_payments
-            totals_tm[report.territorial_manager]["enrolled"] += report.total_enrolled
-        else:
-            totals_tm[report.territorial_manager] = {
-                "attended": report.total_attended,
-                "payments": report.total_payments,
-                "enrolled": report.total_enrolled
-            }
-        if report.regional_manager in totals_rm:
-            totals_rm[report.regional_manager]["attended"] += report.total_attended
-            totals_rm[report.regional_manager]["payments"] += report.total_payments
-            totals_rm[report.regional_manager]["enrolled"] += report.total_enrolled
-        else:
-            totals_rm[report.regional_manager] = {
-                "attended": report.total_attended,
-                "payments": report.total_payments,
-                "enrolled": report.total_enrolled
-            }
-        ukrainian_totals["Ukraine"]["attended"] += report.total_attended
-        ukrainian_totals["Ukraine"]["payments"] += report.total_payments
-        ukrainian_totals["Ukraine"]["enrolled"] += report.total_enrolled
+        if report.territorial_manager != None and report.territorial_manager != "UNKNOWN":
+            if report.territorial_manager in totals_tm:
+                totals_tm[report.territorial_manager]["attended"] += report.total_attended
+                totals_tm[report.territorial_manager]["payments"] += report.total_payments
+                totals_tm[report.territorial_manager]["enrolled"] += report.total_enrolled
+            else:
+                totals_tm[report.territorial_manager] = {
+                    "attended": report.total_attended,
+                    "payments": report.total_payments,
+                    "enrolled": report.total_enrolled
+                }
+            if report.regional_manager in totals_rm:
+                totals_rm[report.regional_manager]["attended"] += report.total_attended
+                totals_rm[report.regional_manager]["payments"] += report.total_payments
+                totals_rm[report.regional_manager]["enrolled"] += report.total_enrolled
+            else:
+                totals_rm[report.regional_manager] = {
+                    "attended": report.total_attended,
+                    "payments": report.total_payments,
+                    "enrolled": report.total_enrolled
+                }
+            ukrainian_totals["Ukraine"]["attended"] += report.total_attended
+            ukrainian_totals["Ukraine"]["payments"] += report.total_payments
+            ukrainian_totals["Ukraine"]["enrolled"] += report.total_enrolled
 
     for tm in territorial_managers:
         rm = get_rm_by_tm(tm)
