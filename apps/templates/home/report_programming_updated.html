@@ -136,7 +136,7 @@
                         <div class="tab-pane fade active show" id="pills-home" role="tabpanel"
                              aria-labelledby="pills-home-tab">
                           {% for regional, tms in managers.items %}
-                            {% if regional != None %}
+                            {% if regional != "None" and regional != None %}
                             <div class="card">
                               <div class="card-header" id="heading{{ forloop.counter }}">
                                 <h5 class="mb-0"><a href="#!" data-toggle="collapse"
@@ -285,6 +285,7 @@
                         <div class="tab-pane fade" id="pills-course" role="tabpanel"
                              aria-labelledby="pills-course-tab">
                           {% for regional, tms in managers.items %}
+                              {% if regional != "None" and regional != None %}
                             <div class="card">
                               <div class="card-header" id="heading{{ forloop.counter }}course">
                                 <h5 class="mb-0"><a href="#!" data-toggle="collapse"
@@ -428,13 +429,16 @@
                                 {% endfor %}
                               </table>
                             </div>
+                              {% endif %}
                           {% endfor %}
+
                         </div>
 
 
                         <div class="tab-pane fade" id="pills-profile" role="tabpanel"
                              aria-labelledby="pills-profile-tab">
                           {% for regional, tms in managers.items %}
+                              {% if regional != "None" and regional != None %}
                             <div class="card">
                               <div class="card-header" id="headingkm{{ forloop.counter }}">
                                 <h5 class="mb-0"><a href="#!" data-toggle="collapse"
@@ -534,7 +538,9 @@
                                       </table>
                                     </div>
                                   </div>
+                                     {% endif %}
                                 {% endfor %}
+
 
                               </div>
                               <table>
