@@ -136,6 +136,7 @@
                         <div class="tab-pane fade active show" id="pills-home" role="tabpanel"
                              aria-labelledby="pills-home-tab">
                           {% for regional, tms in managers.items %}
+                            {% if regional != None %}
                             <div class="card">
                               <div class="card-header" id="heading{{ forloop.counter }}">
                                 <h5 class="mb-0"><a href="#!" data-toggle="collapse"
@@ -211,7 +212,7 @@
                                           </td>
                                         </tr>
                                         {% for key, value in totals_tm.items %}
-                                          {% if key == tm %}
+                                          {% if key == tm and key != None and key != "UNKWNOWN" %}
                                             <tr>
                                               <td>
                                                 <h6 class="m-0"> Усього </h6>
@@ -277,6 +278,7 @@
                                 {% endfor %}
                               </table>
                             </div>
+                              {% endif %}
                           {% endfor %}
                         </div>
 
