@@ -173,7 +173,7 @@
                                         </thead>
                                         <tbody>
                                         {% for data in location_reports %}
-                                          {% if data.territorial_manager == tm and data.regional_manager == regional%}
+                                          {% if data.territorial_manager == tm and data.regional_manager == regional and data.territorial_manager != None and data.territorial_manager != "UNKWNOWN" and data.regional_manager != None%}
                                             <tr>
                                               <td>
                                                 <h6 class="m-0">{{ data.location_name }}</h6>
