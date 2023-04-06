@@ -321,32 +321,30 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        {% for course, data in reports_by_course.items %}
-                                          {% for reg, reg_data in data.items %}
-                                            {% if reg == regional %}
-                                              {% for terr, terr_data in reg_data.items %}
-                                                {% if terr == tm %}
+                                        {% for data in course_reports %}
+                                            {% if data.regional_manager == regional %}
+                                                {% if data.territorial_manager == tm %}
+                                                    {%  if data.total_enrolled != 0 or data.total_attended != 0 or data.total_payments != 0 %}
                                                   <tr>
                                                     <td>
-                                                      <h6 class="m-0">{{ course }}</h6>
+                                                      <h6 class="m-0">{{ data.course }}</h6>
                                                     </td>
                                                     <td>
-                                                      <h6 class="m-0">{{ terr_data.enrolled }}</h6>
+                                                      <h6 class="m-0">{{ data.total_enrolled }}</h6>
                                                     </td>
                                                     <td>
-                                                      <h6 class="m-0">{{ terr_data.attended }}</h6>
+                                                      <h6 class="m-0">{{ data.total_attended }}</h6>
                                                     </td>
                                                     <td>
-                                                      <h6 class="m-0">{{ terr_data.payments }}</h6>
+                                                      <h6 class="m-0">{{ data.total_payments }}</h6>
                                                     </td>
                                                     <td>
-                                                      <h6 class="m-0">{{ terr_data | count_conversion }} %</h6>
+                                                      <h6 class="m-0">{{ data.conversion }} %</h6>
                                                     </td>
                                                   </tr>
                                                 {% endif %}
-                                              {% endfor %}
-                                            {% endif %}
-                                          {% endfor %}
+                                                    {% endif %}
+                                              {% endif %}
                                         {% endfor %}
                                         <tr>
                                           <td>

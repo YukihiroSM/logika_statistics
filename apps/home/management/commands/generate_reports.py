@@ -57,10 +57,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         start_date = datetime.strptime(os.environ.get("start_date"), "%Y-%m-%d").date()
         end_date = datetime.strptime(os.environ.get("end_date"), "%Y-%m-%d").date()
-        reports = StudentReport.objects.filter(start_date__gte=start_date, end_date__lte=end_date)
+        reports = StudentReport.objects.filter(start_date__gte=start_date, end_date__lte=end_date, business="programming")
         territorial_managers = reports.values_list("territorial_manager", flat=True).distinct()
         regional_managers = reports.values_list("regional_manager", flat=True).distinct()
         client_managers = reports.values_list("client_manager", flat=True).distinct()
+        all_courses = reports.values_list("course", flat=True).distinct()
         locations = reports.values_list("location", flat=True).distinct()
         for regional_manager in regional_managers:
             for territorial_manager in territorial_managers:
@@ -133,5 +134,35 @@ class Command(BaseCommand):
                     )
                     print(
                         f"Regional Manager: {regional_manager}, Territorial Manager: {territorial_manager}, Location: {location}"
+                        f"Payments: {payments}, Attended: {attended_mc}, Enrolled: {enrolled_mc}, Conversion: {conversion}")
+                    new_report.save()
+
+                for course in all_courses:
+                    payments = len(reports.filter(business="programming", course=course,
+                                                  territorial_manager=territorial_manager,
+                                                  regional_manager=regional_manager, payment=1).all())
+                    attended_mc = len(reports.filter(business="programming", course=course,
+                                                     territorial_manager=territorial_manager,
+                                                     regional_manager=regional_manager, attended_mc=1).exclude(
+                        amo_id__isnull=True, is_duplicate=1).all())
+                    enrolled_mc = len(reports.filter(business="programming", course=course,
+                                                     territorial_manager=territorial_manager,
+                                                     regional_manager=regional_manager, enrolled_mc=1).exclude(
+                        amo_id__isnull=True, is_duplicate=1).all())
+                    conversion = self.get_conversion(payments, attended_mc)
+                    new_report = CourseReport(
+                        course=course,
+                        territorial_manager=territorial_manager,
+                        regional_manager=regional_manager,
+                        business="programming",
+                        total_attended=attended_mc,
+                        total_payments=payments,
+                        conversion=conversion,
+                        total_enrolled=enrolled_mc,
+                        start_date=start_date,
+                        end_date=end_date
+                    )
+                    print(
+                        f"Regional Manager: {regional_manager}, Territorial Manager: {territorial_manager}, Course: {course}"
                         f"Payments: {payments}, Attended: {attended_mc}, Enrolled: {enrolled_mc}, Conversion: {conversion}")
                     new_report.save()

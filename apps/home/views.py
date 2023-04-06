@@ -45,6 +45,7 @@ from .models import (
     LessonsConsolidation,
     ClientManagerReport,
     LocationReport,
+    CourseReport
 )
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -371,6 +372,9 @@ def programming_report_updated(request):
                                                                     end_date=report_end).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         territorial_managers = StudentReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end).exclude(
             territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
+        course_report = CourseReport.objects.filter(start_date=report_start,
+                                                                    end_date=report_end).exclude(
+            territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
     elif user_role == "regional":
         user_name = f"{request.user.last_name} {request.user.first_name}"
         location_reports = LocationReport.objects.filter(start_date=report_start, end_date=report_end, regional_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
@@ -379,6 +383,10 @@ def programming_report_updated(request):
         territorial_managers = StudentReport.objects.filter(start_date__gte=report_start,
                                                             end_date__lte=report_end, regional_manager=user_name).exclude(
             territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
+        course_report = ClientManagerReport.objects.filter(start_date=report_start,
+                                                                    end_date=report_end,
+                                                                    regional_manager=user_name).exclude(
+            territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
     elif user_role == "territorial_manager":
         user_name = f"{request.user.last_name} {request.user.first_name}"
         location_reports = LocationReport.objects.filter(start_date=report_start, end_date=report_end,
@@ -390,6 +398,9 @@ def programming_report_updated(request):
                                                             end_date__lte=report_end,
                                                             territorial_manager=user_name).exclude(
             territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
+        course_report = CourseReport.objects.filter(start_date=report_start,
+                                                                    end_date=report_end,
+                                                                    territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
     elif user_role == "territorial_manager_km":
         user_mapping = UsersMapping.objects.filter(user=request.user).first()
         user_name = f"{user_mapping.related_to.last_name} {user_mapping.related_to.first_name}"
@@ -398,6 +409,10 @@ def programming_report_updated(request):
         client_manager_reports = ClientManagerReport.objects.filter(start_date=report_start,
                                                                     end_date=report_end,
                                                                     territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
+        course_report = CourseReport.objects.filter(start_date=report_start,
+                                                                    end_date=report_end,
+                                                                    territorial_manager=user_name).exclude(
+            territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
         territorial_managers = StudentReport.objects.filter(start_date__gte=report_start,
                                                             end_date__lte=report_end,
                                                             territorial_manager=user_name).exclude(
@@ -455,7 +470,8 @@ def programming_report_updated(request):
         "user_role": user_role,
         "totals_tm": totals_tm,
         "totals_rm": totals_rm,
-        "ukrainian_totals": ukrainian_totals
+        "ukrainian_totals": ukrainian_totals,
+        "course_reports": course_report
         # "reports_by_course": formatted_courses
     }
     html_template = loader.get_template("home/report_programming_updated.html")
