@@ -207,7 +207,7 @@ headers = {
     'authority': 'lms.logikaschool.com',
     'accept': 'application/json, text/plain, */*',
     'accept-language': 'en-US,en;q=0.9,uk;q=0.8',
-    'cookie': '_ga=GA1.2.1527436167.1670573010; intercom-device-id-ufjpx6k3=0aab2a34-36f3-4665-bde2-dc9579591415; _tt_enable_cookie=1; _ttp=HPkcLn3B0k0IwwhvH2Wtj_plCCn; _fbp=fb.1.1672250630923.867560945; _ym_uid=1672250633123251252; _ym_d=1672250633; _grid_page_size_schedule=35d0980fa38e2255112d0c62698773cab8aa12a81c6735caf172064b5eb6ea47a:2:{i:0;s:24:"_grid_page_size_schedule";i:1;s:3:"200";}; studentId=1871139; sidebar-state=expanded; userId=23319; createdTimestamp=1676026823; accessToken=7fd7dc8f68f50e4a27da9854159fd06907d011c62188560a4c1b653faf5624e2; SERVERID=b410; studentAccessToken=95aaca7bad728258ed42ee9f838c1bf32b3382c5055ff874cff81de5bd0959e8; studentCreatedTimestamp=1676823140; _gid=GA1.2.169292831.1677060860; _backendMainSessionId=5be8598e1ace48aeda5c23a18747d95d; _csrf=b94af61663b67aaf1f47bd8150e90e128aaf70fc5fd5e27c853c36a84186e6b2a:2:{i:0;s:5:"_csrf";i:1;s:32:"q-nuW3AjlkgC3_SoInSQxbISxfyo52kH";}; _gat_gtag_UA_122842599_49=1; intercom-session-ufjpx6k3=ekY4Ym5yUXl1MFVWVVBxY0IvaDJWRVg2bzRFeXl6eVJKM3FjVlF3bUQ2MkRBcGx3dXFOT0hEMjdjeVFUMDlYTi0tYzFuMEtwZ2ZDN3RYcHB3dVluOHhSdz09--43b5d06bd5bee147f391bbfe7c2619df911f2b59',
+    'cookie': '_ym_uid=1663926215718852102; _ga=GA1.2.1045060559.1663926216; intercom-device-id-ufjpx6k3=3f4dd25f-d779-4461-b7cf-91fab5939733; _csrf=2c1960119e057672b7ddafe1b5610adf8d19b0f85c3d5ea523e48bdad8f51087a:2:{i:0;s:5:"_csrf";i:1;s:32:"H4_6b2stVu6B_csL1pfbGX7nJNepPfzC";}; userId=23319; createdTimestamp=1679908011; accessToken=6280800ff7eddb0f71dd6e2d71c851817fbde44c21f90a7b0d2098b78d67f3f2; SERVERID=b430; _backendMainSessionId=1a8f76d7c9324072b6d6cb1e57d27215; _ym_d=1679908047; _gid=GA1.2.1633505702.1680858173; intercom-session-ufjpx6k3=d2t4QzJndVZBUEMwcVA3cHdCVVNyanB5UVg3dFpyZitHcmRVMGRGczVrVkJnbG5taWtpY1FpcExzM3phRWJIMi0tdGRFdVdWaUJVNHYxWnhMQlBsRk9kZz09--52e3cee9a855f17fe380a844f324add21592e10f; _ym_isad=2; _ym_visorc=w; _gat_gtag_UA_122842599_49=1',
     'referer': f'https://lms.logikaschool.com/',
     'sec-ch-ua': '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
     'sec-ch-ua-mobile': '?1',
@@ -225,7 +225,7 @@ payments_headers = {
 'Authorization': 'Basic SFMxQ0RhdGFVc2VyOjEyMw==',
 'cache-control': 'max-age=0',
 'connection': 'keep-alive',
-'cookie': 'csrftoken=GdRKKw4MQiRoead7ZsgWskcxst187rsW; sessionid=7s2mqayratnrlzs8d8hne51wf61ea0ki',
+'cookie': 'csrftoken=aGWVQpukFhjPvw7FZjhZrdduBIiOX497; sessionid=fymzi0ktstzef8k2xm8s3t4ig5lqevig',
 'host': 'localhost:22443',
 'sec-ch-ua': '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
 'sec-ch-ua-mobile': '?1',
@@ -271,7 +271,7 @@ def get_course_by_course_name(lms_course, translate=False):
                           "websites": "Створення сайтів",
                           "comp_gram": "Компʼютерна грамотність",
                           "video_blogging": "Відеоблогінг"}
-    lms_course = lms_course.lower().replace(" ", "_").replace("-", "_").replace('"', "'")
+    lms_course = lms_course.lower().replace(" ", "_").replace("-", "_").replace('"', "'") if lms_course else None
     for course in COURSES["programming"]:
         if lms_course in COURSES["programming"][course]:
             if translate:
