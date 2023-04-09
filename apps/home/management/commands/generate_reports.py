@@ -1,7 +1,7 @@
 import logging
 import os
 from datetime import datetime
-
+import library
 from django.core.management.base import BaseCommand
 
 from apps.home.models import ClientManagerReport, LocationReport, StudentReport, CourseReport, Location
@@ -151,7 +151,7 @@ class Command(BaseCommand):
                         amo_id__isnull=True, is_duplicate=1).all())
                     conversion = self.get_conversion(payments, attended_mc)
                     new_report = CourseReport(
-                        course=course,
+                        course=library.get_course_by_course_name(course),
                         territorial_manager=territorial_manager,
                         regional_manager=regional_manager,
                         business="programming",
@@ -163,6 +163,6 @@ class Command(BaseCommand):
                         end_date=end_date
                     )
                     print(
-                        f"Regional Manager: {regional_manager}, Territorial Manager: {territorial_manager}, Course: {course}"
+                        f"Regional Manager: {regional_manager}, Territorial Manager: {territorial_manager}, Course: {library.get_course_by_course_name(course)}"
                         f"Payments: {payments}, Attended: {attended_mc}, Enrolled: {enrolled_mc}, Conversion: {conversion}")
                     new_report.save()
