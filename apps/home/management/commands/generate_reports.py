@@ -163,6 +163,6 @@ class Command(BaseCommand):
                         end_date=end_date
                     )
                     print(
-                        f"Regional Manager: {regional_manager}, Territorial Manager: {territorial_manager}, Course: {library.get_course_by_course_name(course)}"
+                        f"Regional Manager: {regional_manager}, Territorial Manager: {territorial_manager}, Course: {library.get_course_by_course_name(course, readable=True)}"
                         f"Payments: {payments}, Attended: {attended_mc}, Enrolled: {enrolled_mc}, Conversion: {conversion}")
                     new_report.save()
