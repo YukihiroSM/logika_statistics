@@ -189,7 +189,7 @@
                                                 <h6 class="m-0">{{ data.total_payments }}</h6>
                                               </td>
                                               <td>
-                                                <h6 class="m-0">{{ data.conversion }} %</h6>
+                                                <h6 class="m-0" {% if data.conversion < 40 %}style="color: darkred"{% endif %}>{{ data.conversion }} %</h6>
                                               </td>
                                               <td>
                                                 <h6 class="m-0"> </h6>
@@ -339,7 +339,7 @@
                                                       <h6 class="m-0">{{ data.total_payments }}</h6>
                                                     </td>
                                                     <td>
-                                                      <h6 class="m-0">{{ data.conversion }} %</h6>
+                                                      <h6 class="m-0" {% if data.conversion < 40 %}style="color: darkred"{% endif %}>{{ data.conversion }} %</h6>
                                                     </td>
                                                   </tr>
                                                 {% endif %}
@@ -489,7 +489,7 @@
                                                 <h6 class="m-0">{{ data.total_payments }}</h6>
                                               </td>
                                               <td>
-                                                <h6 class="m-0">{{ data.conversion }} %</h6>
+                                                <h6 class="m-0" {% if data.conversion < 40 %}style="color: darkred"{% endif %}>{{ data.conversion }} %</h6>
                                               </td>
                                             </tr>
                                           {% endif %}
