@@ -177,7 +177,7 @@
                                           {% if data.territorial_manager == tm and data.regional_manager == regional and data.territorial_manager != None and data.territorial_manager != "UNKWNOWN" and data.regional_manager != None%}
                                             <tr>
                                               <td>
-                                                <h6 class="m-0">{{ data.location_name }}</h6>
+                                                <h6 class="m-0" {% if data.conversion < 40 %}style="color: darkred"{% endif %}>{{ data.location_name }}</h6>
                                               </td>
                                               <td>
                                                 <h6 class="m-0">{{ data.total_enrolled }}</h6>
@@ -327,7 +327,7 @@
                                                     {%  if data.total_enrolled != 0 or data.total_attended != 0 or data.total_payments != 0 %}
                                                   <tr>
                                                     <td>
-                                                      <h6 class="m-0">{{ data.course }}</h6>
+                                                      <h6 class="m-0" {% if data.conversion < 40 %}style="color: darkred"{% endif %}>{{ data.course }}</h6>
                                                     </td>
                                                     <td>
                                                       <h6 class="m-0">{{ data.total_enrolled }}</h6>
@@ -477,7 +477,7 @@
                                           {% if data.territorial_manager == tm and data.regional_manager == regional %}
                                             <tr>
                                               <td>
-                                                <h6 class="m-0">{{ data.client_manager }}</h6>
+                                                <h6 class="m-0" {% if data.conversion < 40 %}style="color: darkred"{% endif %}>{{ data.client_manager }}</h6>
                                               </td>
                                               <td>
                                                 <h6 class="m-0">{{ data.total_enrolled }}</h6>
