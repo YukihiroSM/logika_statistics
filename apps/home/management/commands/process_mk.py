@@ -42,6 +42,7 @@ class Command(BaseCommand):
         print("Finished loading global students" + " " + str(datetime.now()))
         global parsing_results
         parsing_results = {}
+        self.session = library.lms_auth()
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -60,10 +61,10 @@ class Command(BaseCommand):
         print(f"Starting processing {str(group_id)}" + " " + str(datetime.now()))
         results = {}
         group_url = f"https://lms.logikaschool.com/api/v2/group/student/index?groupId={group_id}&expand=lastGroup%2ClastGroup.invoices%2ClastGroup.invoices.invoiceMail%2Cbranch%2Cwallet%2CamoLead%2Cb2bPartners%2Cgroups.b2bPartners"
-        response = requests.get(group_url, headers=library.headers)
+        response = self.session.get(group_url)
         students = response.json()['data']
         url = f'https://lms.logikaschool.com/api/v1/stats/default/attendance?group={group_id}'
-        resp = requests.get(url, headers=library.headers)
+        resp = self.session.get(url)
         data_dict = resp.json()['data']
         attendance = {}
         for student in data_dict:
@@ -112,7 +113,7 @@ class Command(BaseCommand):
 
     def is_duplicates(self, student_id):
         url = f"https://lms.logikaschool.com/api/v2/student/default/view/{student_id}?id={student_id}&expand=lastGroup%2Cwallet%2Cbranch%2ClastGroup.branch%2CamoLead%2Cgroups%2Cgroups.b2bPartners"
-        resp = requests.get(url, headers=library.headers)
+        resp = self.session.get(url)
         if resp.status_code != 200:
             raise Exception("UPDATE HEADERS NEEDED!")
         info_dict = resp.json()
@@ -165,7 +166,7 @@ class Command(BaseCommand):
         month = os.environ.get("month")
         print("Starting getting groups from LMS" + " " + str(datetime.now()))
         collect_groups_link = f"https://lms.logikaschool.com/group/default/schedule?GroupWithLessonSearch%5BnextLessonTime%5D={start_date}+-+{end_date}&GroupWithLessonSearch%5Bid%5D=&GroupWithLessonSearch%5Btitle%5D=&GroupWithLessonSearch%5Bvenue%5D=&GroupWithLessonSearch%5Bactive_student_count%5D=&GroupWithLessonSearch%5Bweekday%5D=&GroupWithLessonSearch%5Bteacher%5D=&GroupWithLessonSearch%5Bcurator%5D=&GroupWithLessonSearch%5Btype%5D=&GroupWithLessonSearch%5Btype%5D%5B%5D=masterclass&GroupWithLessonSearch%5Bcourse%5D=&GroupWithLessonSearch%5Bbranch%5D=&export=true&name=default&exportType=csv"
-        response = requests.get(collect_groups_link, headers=library.headers)
+        response = self.session.get(collect_groups_link)
         output_file_path = Path(BASE_DIR, "lms_reports", month, f"{start_date}_{end_date}", "schedule.csv")
         with open(output_file_path, "w", encoding="UTF-8") as file_obj:
             for line in response.text:
@@ -267,7 +268,7 @@ class Command(BaseCommand):
                     issue.save()
             students = parsing_results.get(row['group_id'])
             group_url = f"https://lms.logikaschool.com/api/v1/group/{row['group_id']}?expand=venue%2Cteacher%2Ccurator%2Cbranch"
-            resp = requests.get(group_url, headers=library.headers)
+            resp = self.session.get(group_url)
             group_data = resp.json().get('data')
             try:
                 group_course = group_data.get('course').get('id')
