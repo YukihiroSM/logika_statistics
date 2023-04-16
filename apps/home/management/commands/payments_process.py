@@ -44,6 +44,7 @@ class Command(BaseCommand):
             return paym
 
     def handle(self, *args, **options):
+        lms_session = library.lms_auth()
         start_date = os.environ.get("start_date")
         end_date = os.environ.get("end_date")
         month = os.environ.get("month")
@@ -125,7 +126,7 @@ class Command(BaseCommand):
                 report.save()
                 continue
             url = f"https://lms.logikaschool.com/api/v2/student/default/view/{student_id}?id={student_id}&expand=lastGroup%2Cwallet%2Cbranch%2ClastGroup.branch%2CamoLead%2Cgroups%2Cgroups.b2bPartners"
-            resp = requests.get(url, headers=library.headers)
+            resp = lms_session.get(url)
             if resp.status_code == 200:
                 info_dict = resp.json()['data']
                 first_name = info_dict["firstName"]
