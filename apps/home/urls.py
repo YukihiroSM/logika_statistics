@@ -43,7 +43,8 @@ urlpatterns = [
     path('health', views.health, name='home'),
     path('programming_test', views.programming_report, name="home"),
     path('consolidation', views.consolidation_report, name="home"),
-    path('lessons_links_collection', views.get_lessons_links, name="home"),
+    path('lessons_links_collection', views.collect_lessons_links, name="home"),
+    path('lessons_links_collection_extended', views.collect_lessons_links_extended, name="home"),
     path('programming_updated', views.programming_report_updated, name="home"),
     path('', views.home, name='home'),
 

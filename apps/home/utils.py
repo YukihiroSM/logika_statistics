@@ -7,7 +7,9 @@ import library
 
 ok_status = 200
 result = []
+result_extended = []
 auth = library.lms_auth()
+
 
 def retrieve_group_ids_from_csv(auth: requests.Session(), report_start: str, report_end: str) -> list:
     ids = []
@@ -62,7 +64,69 @@ def parse_in_threads(group_ids):
         executor.map(parse_groups_portion, args)
 
 
-def get_result(auth: requests.Session(), ids: list) -> list:
+def get_lessons_links(ids: list) -> list:
     global result
+    result = []
     parse_in_threads(ids)
     return result
+
+
+def parse_groups_portion_extended(group_ids):
+    global result_extended
+    for group_id in group_ids:
+        group_data_response = auth.get(f"https://lms.logikaschool.com/api/v1/group/{group_id}?expand=venue,teacher,curator,branch")
+        retrieve_link = auth.get(f"https://lms.logikaschool.com/api/v2/group/online/view/{group_id}")
+        if group_data_response.status_code and retrieve_link.status_code == ok_status:
+            if group_data_response.json() and retrieve_link.json() is not None:
+                data = group_data_response.json().get('data', dict())
+                link_data = retrieve_link.json().get('data', dict())
+                backup_online_room_url = link_data.get('backupOnlineRoomUrl', dict())
+                link = backup_online_room_url.get('url')
+                next_lesson_time = data.get('next_lesson_time')
+                teacher = data.get('teacher', dict())
+                teacher_name = teacher.get('name')
+                group_name = data.get("title")
+                curator = data.get("curator")
+                if curator:
+                    curator_name = curator.get("name")
+                else:
+                    curator_name = "Відсутнє ім'я в ЛМС"
+
+                course = data.get("course")
+                if course:
+                    course_name = course.get("name")
+                else:
+                    course_name = "Відсутній курс в ЛМС"
+                result_extended.append({'group': group_id,
+                                        'link': link,
+                                        'next_lesson_time': next_lesson_time,
+                                        'teacher_name': teacher_name,
+                                        "group_name": group_name,
+                                        "curator_name": curator_name,
+                                        "course_name": course_name})
+
+            else:
+                print(f'Bad request! Response [{group_data_response.status_code}].')
+
+
+def parse_in_threads_extended(group_ids):
+    num_of_threads = 10
+    if num_of_threads == 0:
+        num_of_threads = 1
+    separator = len(group_ids) // num_of_threads
+    args = []
+    for i in range(0, num_of_threads):
+        if i == num_of_threads - 1:
+            arg = group_ids[i * separator:]
+        else:
+            arg = group_ids[i * separator:(i + 1) * separator]
+        args.append(arg)
+    with ThreadPoolExecutor(max_workers=num_of_threads) as executor:
+        executor.map(parse_groups_portion_extended, args)
+
+
+def get_lessons_links_extended(ids: list) -> list:
+    global result_extended
+    result_extended = []
+    parse_in_threads_extended(ids)
+    return result_extended

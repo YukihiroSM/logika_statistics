@@ -2,6 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
+import csv
 import os
 import textwrap
 from concurrent.futures import ThreadPoolExecutor
@@ -49,7 +50,7 @@ from .models import (
 )
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from .utils import retrieve_group_ids_from_csv, get_result
+from .utils import retrieve_group_ids_from_csv, get_lessons_links, get_lessons_links_extended
 
 
 def is_member(user, group_name):
@@ -87,14 +88,39 @@ scales_new = {
 
 
 @csrf_exempt
-def get_lessons_links(request):
+def collect_lessons_links(request):
     request_data_GET = dict(request.GET)
-    report_start = request_data_GET.get("report_start", [None])[0]
-    report_end = request_data_GET.get("report_end", [None])[0]
+    report_start = request_data_GET.get("report_start", [""])[0]
+    report_end = request_data_GET.get("report_end", [""])[0]
     auth = library.lms_auth()
     ids = retrieve_group_ids_from_csv(auth, report_start=report_start, report_end=report_end)
-    result_data = get_result(auth=auth, ids=ids)
+    result_data = get_lessons_links(ids=ids)
     return JsonResponse(result_data, safe=False)
+
+
+@csrf_exempt
+def collect_lessons_links_extended(request):
+    request_data_GET = dict(request.GET)
+    report_start = request_data_GET.get("report_start", [""])[0]
+    report_end = request_data_GET.get("report_end", [""])[0]
+    auth = library.lms_auth()
+    ids = retrieve_group_ids_from_csv(auth, report_start=report_start, report_end=report_end)
+    result_data = get_lessons_links_extended(ids=ids)
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="lessons_schedule_links.csv"'},
+    )
+    response.write(u'\ufeff'.encode('utf8'))
+
+    writer = csv.writer(response)
+    writer.writerow(
+        ["ID Групи", "Назва групи", "Посилання", "Викладач", "КМ", "Назва курсу", "Дата, час наступного уроку"])
+    for group in result_data:
+        writer.writerow([group.get("group"), group.get("group_name"), group.get("link"),
+                         group.get("teacher_name"), group.get("curator_name"), group.get("course_name"),
+                         group.get("next_lesson_time")])
+    response['Content-Encoding'] = 'utf-8'
+    return response
 
 
 def get_possible_report_scales():
