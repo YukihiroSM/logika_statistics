@@ -283,7 +283,7 @@ def get_course_by_course_name(lms_course, translate=False):
 def lms_auth():
     session = requests.Session()
 
-    login_payload = {"login": "statistics", "password": "2dfK2drifC9Bci9"}
+    login_payload = {"login": "statistics", "password": "4nNe@24Qm0hF"}
     resp = session.post("https://lms.logikaschool.com/s/auth/api/e/user/auth", data=login_payload)
     if resp.ok:
         session_file_path = Path(BASE_DIR, "session.pickle")
