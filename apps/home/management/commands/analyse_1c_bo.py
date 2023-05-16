@@ -45,7 +45,7 @@ class Command(BaseCommand):
         for group_label in groups_list:
             if not isinstance(group_label, str):
                 continue
-            group_id = group_label.split(", ")[-1].replace(" ", "")
+            group_id = group_label.split(", ")[-1].replace(" ", "").replace(",", "")
             if not group_id.isdigit() or group_id == "0":
                 print(group_label)
                 groups_without_id.append(group_label)

@@ -165,7 +165,7 @@ class Command(BaseCommand):
         end_date = self.end_date
         month = os.environ.get("month")
         print("Starting getting groups from LMS" + " " + str(datetime.now()))
-        collect_groups_link = f"https://lms.logikaschool.com/group/default/schedule?GroupWithLessonSearch%5BnextLessonTime%5D={start_date}+-+{end_date}&GroupWithLessonSearch%5Bid%5D=&GroupWithLessonSearch%5Btitle%5D=&GroupWithLessonSearch%5Bvenue%5D=&GroupWithLessonSearch%5Bactive_student_count%5D=&GroupWithLessonSearch%5Bweekday%5D=&GroupWithLessonSearch%5Bteacher%5D=&GroupWithLessonSearch%5Bcurator%5D=&GroupWithLessonSearch%5Btype%5D=&GroupWithLessonSearch%5Btype%5D%5B%5D=masterclass&GroupWithLessonSearch%5Bcourse%5D=&GroupWithLessonSearch%5Bbranch%5D=&export=true&name=default&exportType=csv"
+        collect_groups_link = f"https://lms.logikaschool.com/group/default/schedule?GroupLessonSearch%5Bstart_time%5D={start_date}+-+{end_date}&GroupLessonSearch%5Bgroup_id%5D=&GroupLessonSearch%5Bgroup.title%5D=&GroupLessonSearch%5Bgroup.venue%5D=&GroupLessonSearch%5Bgroup.active_student_count%5D=&GroupLessonSearch%5Bteacher.name%5D=&GroupLessonSearch%5Bgroup.curator.name%5D=&GroupLessonSearch%5Bgroup.type%5D=&GroupLessonSearch%5Bgroup.type%5D%5B%5D=masterclass&GroupLessonSearch%5Bgroup.course.name%5D=&GroupLessonSearch%5Bgroup.branch.title%5D=&export=true&name=default&exportType=csv"
         response = self.session.get(collect_groups_link)
         output_file_path = Path(BASE_DIR, "lms_reports", month, f"{start_date}_{end_date}", "schedule.csv")
         with open(output_file_path, "w", encoding="UTF-8") as file_obj:
@@ -174,13 +174,13 @@ class Command(BaseCommand):
         print("Got groups from lms. Written to file." + " " + str(datetime.now()))
         mk_df = pd.read_csv(output_file_path, delimiter=";")
         mk_df = mk_df.drop(["Время след. урока", "S Статус урока", "Уч-ки",
-                            " Отчисленные и переведенные", "День", "Тип группы",
+                            " Отчисленные и переведенные", "Тип группы",
                                                                    "Присутствовали"], axis=1)
         mk_df.rename(columns={
             'ID группы': 'group_id',
             'Название группы': 'group_name',
             'Площадка': 'group_location',
-            'Преподаватель': 'group_teacher',
+            'Преп. на занятии': 'group_teacher',
             'Куратор': 'client_manager',
             'Курс': 'course',
             'Офис': 'region'

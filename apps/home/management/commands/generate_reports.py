@@ -151,7 +151,7 @@ class Command(BaseCommand):
                         amo_id__isnull=True, is_duplicate=1).all())
                     conversion = self.get_conversion(payments, attended_mc)
                     new_report = CourseReport(
-                        course=library.get_course_by_course_name(course),
+                        course=library.get_course_by_course_name(course, translate=True),
                         territorial_manager=territorial_manager,
                         regional_manager=regional_manager,
                         business="programming",

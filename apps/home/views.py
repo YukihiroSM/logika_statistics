@@ -83,7 +83,8 @@ scales_new = {
     "Січень": "2022-12-26_2023-01-31",
     "Лютий": "2023-02-01_2023-02-24",
     "Березень": "2023-03-01_2023-03-31",
-    "Квітень": "2023-04-01_2023-04-09"
+    "Квітень": "2023-04-01_2023-04-30",
+    "Травень": "2023-05-01_2023-05-14"
 }
 
 
@@ -1356,9 +1357,14 @@ def english_new(request):
             client_manager = location_obj.client_manager_english
         else:
             print("LOCATION NOT IN LIST!!!", location)
-            territorial_manager = location_enrolled[0].territorial_manager
-            regional_manager = location_enrolled[0].regional_manager
-            client_manager = location_enrolled[0].client_manager
+            try:
+                territorial_manager = location_enrolled[0].territorial_manager
+                regional_manager = location_enrolled[0].regional_manager
+                client_manager = location_enrolled[0].client_manager
+            except:
+                territorial_manager = None
+                regional_manager = None
+                client_manager = None
 
         reports_by_locations[location] = {
             "enrolled": len(location_enrolled),
@@ -1420,16 +1426,20 @@ def english_new(request):
                 territorial_manager = location_obj.territorial_manager
                 regional_manager = location_obj.regional_manager
             else:
-                territorial_manager = (
-                    location_enrolled[0].territorial_manager
-                    if len(location_enrolled) > 0
-                    else None
-                )
-                regional_manager = (
-                    location_enrolled[0].territorial_manager
-                    if len(location_enrolled) > 0
-                    else None
-                )
+                try:
+                    territorial_manager = (
+                        location_enrolled[0].territorial_manager
+                        if len(location_enrolled) > 0
+                        else None
+                    )
+                    regional_manager = (
+                        location_enrolled[0].territorial_manager
+                        if len(location_enrolled) > 0
+                        else None
+                    )
+                except:
+                    territorial_manager = None
+                    regional_manager = None
 
         reports_by_cm[cm] = {
             "enrolled": len(location_enrolled),
