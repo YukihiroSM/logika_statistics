@@ -180,9 +180,44 @@ def collect_groups_by_teacher_location(
         return filtered_groups
 
 
-def collect_groups_schedule():
-    teacher_name = "Александр Гурчин"
-    location = "Онлайн"
+def get_lessons_with_dates(group_id):
+    attendance_url = (
+        f"https://lms.logikaschool.com/api/v1/stats/default/attendance?group={group_id}"
+    )
+    resp = auth.get(attendance_url)
+    if resp.status_code == ok_status:
+        lessons_data = resp.json().get("data", dict())
+        lessons_schedule = []
+        if lessons_data:
+            lessons_schedule = lessons_data[0].get("attendance", [])
+        if lessons_schedule:
+            # lesson example:
+            # {
+            #   "lesson_id": 13730,
+            #   "lesson_title": "Python Start. Введення в мову Python.",
+            #   "start_time_formatted": "пн 10.04.23 16:00",
+            #   "status": "present"
+            # }
+            for lesson in lessons_schedule:
+                lesson_title = lesson.get("lesson_title")
+                start_time_formatted = lesson.get("start_time_formatted")
+                status = lesson.get("status")
+                lesson_data = {
+                    "lesson_title": lesson_title,
+                    "start_time_formatted": start_time_formatted,
+                    "status": status,
+                }
+                return lesson_data
+
+
+def collect_groups_schedule(
+    teacher_name: str | None = None, location: str | None = None
+):
     teacher_groups = collect_groups_by_teacher_location(
         teacher_name=teacher_name, location=location
     )
+    groups_data = {}
+    teacher_groups_ids = [group.get("group_id") for group in teacher_groups]
+    for group_id in teacher_groups_ids:
+        groups_data[group_id] = get_lessons_with_dates(group_id)
+    return groups_data
