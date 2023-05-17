@@ -153,7 +153,7 @@ def get_lessons_links_extended(ids: list) -> list:
 
 
 def collect_groups_by_teacher_location(
-    teacher_name: str | None = None, location: str | None = None
+    teacher_name=None, location=None
 ) -> list[dict]:
     link_for_groups = "https://lms.logikaschool.com/api/v1/group"
     resp = auth.get(link_for_groups)
@@ -211,7 +211,7 @@ def get_lessons_with_dates(group_id):
 
 
 def collect_groups_schedule(
-    teacher_name: str | None = None, location: str | None = None
+    teacher_name=None, location=None
 ):
     teacher_groups = collect_groups_by_teacher_location(
         teacher_name=teacher_name, location=location
