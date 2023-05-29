@@ -3,77 +3,85 @@
     <div class="navbar-wrapper">
         <div class="navbar-brand header-logo">
             <a href="/" class="b-brand">
-                    <img src="static/assets/images/logo-thumb.png" width="29" height="36">
+                <img src="static/assets/images/logo-thumb.png" width="29" height="36">
                 <span class="b-title">Logika Statistics</span>
             </a>
             <a class="mobile-menu" id="mobile-collapse" href="javascript:"><span></span></a>
         </div>
         <div class="navbar-content scroll-div">
             <ul class="nav pcoded-inner-navbar">
-            {% if user_role == "territorial_manager" or user_group == "territorial_manager" or user_role == "regional" or user_group == "regional" or user_role == "admin" or user_group == "admin" %}
+                {% if user_role == "territorial_manager" or user_group == "territorial_manager" or user_role ==
+                "regional" or user_group == "regional" or user_role == "admin" or user_group == "admin" %}
                 <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
                     class="nav-item {% if 'consolidation' in segment %} active {% endif %}">
-                    <a href="/consolidation" class="nav-link "><span class="pcoded-micon"><i class="feather icon-users"></i></span><span
-                            class="pcoded-mtext">Зведення 1С та БО</span></a>
+                    <a href="/consolidation" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-users"></i></span><span class="pcoded-mtext">Зведення 1С та
+                            БО</span></a>
                 </li>
                 {% endif %}
                 {% if user_group != "tutor" %}
                 <li class="nav-item pcoded-menu-caption">
                     <h6>Адміністративний відділ</h6>
                 </li>
-                  <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
+                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
                     class="nav-item {% if 'programming_new' in segment %} active {% endif %}">
-                    <a href="/programming_new" class="nav-link "><span class="pcoded-micon"><i class="feather icon-cpu"></i></span><span
-                            class="pcoded-mtext">Програмування</span></a>
+                    <a href="/programming_new" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-cpu"></i></span><span class="pcoded-mtext">Програмування</span></a>
                 </li>
-                  <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
+                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
                     class="nav-item {% if 'english_new' in segment %} active {% endif %}">
-                    <a href="/english_new" class="nav-link "><span class="pcoded-micon"><i class="feather icon-globe"></i></span><span
-                            class="pcoded-mtext">Англійська</span></a>
+                    <a href="/english_new" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-globe"></i></span><span class="pcoded-mtext">Англійська</span></a>
                 </li>
                 {% endif %}
                 <li class="nav-item pcoded-menu-caption">
                     <h6>Навчальний відділ</h6>
                 </li>
                 <li class="nav-item pcoded-menu-caption">
-                  <label>Т'ютори</label>
+                    <label>Т'ютори</label>
                 </li>
                 <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
                     class="nav-item {% if 'programming_tutor' in segment %} active {% endif %}">
-                    <a href="/programming_tutor_new" class="nav-link "><span class="pcoded-micon"><i class="feather icon-cpu"></i></span><span
-                            class="pcoded-mtext">Програмування - т'ютори</span></a>
+                    <a href="/programming_tutor_new" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-cpu"></i></span><span class="pcoded-mtext">Програмування -
+                            т'ютори</span></a>
                 </li>
                 <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
                     class="nav-item {% if 'english_tutor' in segment %} active {% endif %}">
-                    <a href="/english_tutor_new" class="nav-link "><span class="pcoded-micon"><i class="feather icon-globe"></i></span><span
-                            class="pcoded-mtext">Англійська - т'ютори</span></a>
+                    <a href="/english_tutor_new" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-globe"></i></span><span class="pcoded-mtext">Англійська -
+                            т'ютори</span></a>
                 </li>
-{#                <li class="nav-item pcoded-menu-caption">#}
-{#                  <label>Викладачі</label>#}
-{#                </li>#}
-{#                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"#}
-{#                    class="nav-item {% if 'programming_teachers' in segment %} active {% endif %}">#}
-{#                    <a href="/teachers_programming" class="nav-link "><span class="pcoded-micon"><i class="feather icon-cpu"></i></span><span#}
-{#                            class="pcoded-mtext">Програмування - викладачі</span></a>#}
-{#                </li>#}
-{#                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"#}
-{#                    class="nav-item {% if 'english_teachers' in segment %} active {% endif %}">#}
-{#                    <a href="/teachers_english" class="nav-link "><span class="pcoded-micon"><i class="feather icon-globe"></i></span><span#}
-{#                            class="pcoded-mtext">Англійська - викладачі</span></a>#}
-{#                </li>#}
+                <li class="nav-item pcoded-menu-caption">
+                    <label>Викладачі</label>
+                </li>
+                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
+                    class="nav-item {% if 'programming_teachers' in segment %} active {% endif %}">
+                    <a href="/teachers_programming" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-cpu"></i></span><span class="pcoded-mtext">Програмування -
+                            викладачі</span></a>
+                </li>
+                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
+                    class="nav-item {% if 'english_teachers' in segment %} active {% endif %}">
+                    <a href="/teachers_english" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-globe"></i></span><span class="pcoded-mtext">Англійська -
+                            викладачі</span></a>
+                </li>
                 <hr>
-              {% if user_role != "tutor" %}
-              <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
-                        class="nav-item {% if 'issues_new' in segment %} active {% endif %}">
-                        <a href="/issues_new" class="nav-link "><span class="pcoded-micon"><i class="feather icon-alert-circle"></i></span><span
-                                class="pcoded-mtext">Незбіжності</span></a>
-                    </li>
-            {% endif %}
-                    <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
-                        class="nav-item {% if 'issues_new' in segment %} active {% endif %}">
-                        <a href="/issues_tutors" class="nav-link "><span class="pcoded-micon"><i class="feather icon-alert-circle"></i></span><span
-                                class="pcoded-mtext">Незбіжності Т'юторів</span></a>
-                    </li>
+                {% if user_role != "tutor" %}
+                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
+                    class="nav-item {% if 'issues_new' in segment %} active {% endif %}">
+                    <a href="/issues_new" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-alert-circle"></i></span><span
+                            class="pcoded-mtext">Незбіжності</span></a>
+                </li>
+                {% endif %}
+                <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
+                    class="nav-item {% if 'issues_new' in segment %} active {% endif %}">
+                    <a href="/issues_tutors" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-alert-circle"></i></span><span class="pcoded-mtext">Незбіжності
+                            Т'юторів</span></a>
+                </li>
             </ul>
         </div>
     </div>

@@ -5,7 +5,6 @@ Copyright (c) 2019 - present AppSeed.us
 import csv
 import os
 import textwrap
-from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 import requests
@@ -20,7 +19,6 @@ from .forms import (
     ReportDateForm,
     CreateAmoRef,
     ReasonForCloseForm,
-    LocationCreateForm,
     AssignIssueForm,
     AddCMForm,
     AddStudentId,
@@ -28,11 +26,8 @@ from .forms import (
     AddTeacherForm,
     AssignTutorIssueForm,
     ReasonForRevert,
-    ExtendedReportForm,
 )
 import datetime
-import math
-import re
 import library
 from .models import (
     Report,
@@ -46,11 +41,15 @@ from .models import (
     LessonsConsolidation,
     ClientManagerReport,
     LocationReport,
-    CourseReport
+    CourseReport,
 )
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from .utils import retrieve_group_ids_from_csv, get_lessons_links, get_lessons_links_extended
+from .utils import (
+    retrieve_group_ids_from_csv,
+    get_lessons_links,
+    get_lessons_links_extended,
+)
 
 
 def is_member(user, group_name):
@@ -60,12 +59,6 @@ def is_member(user, group_name):
 def results(request):
     report_scale = request.POST.get("report_scale", None)
     print(report_scale)
-
-
-def admin_page(request):
-    html_template = loader.get_template("home/admin_page.html")
-    context = {}
-    return HttpResponse(html_template.render(context, request))
 
 
 def health(request):
@@ -84,7 +77,7 @@ scales_new = {
     "Лютий": "2023-02-01_2023-02-24",
     "Березень": "2023-03-01_2023-03-31",
     "Квітень": "2023-04-01_2023-04-30",
-    "Травень": "2023-05-01_2023-05-14"
+    "Травень": "2023-05-01_2023-05-14",
 }
 
 
@@ -94,7 +87,9 @@ def collect_lessons_links(request):
     report_start = request_data_GET.get("report_start", [""])[0]
     report_end = request_data_GET.get("report_end", [""])[0]
     auth = library.lms_auth()
-    ids = retrieve_group_ids_from_csv(auth, report_start=report_start, report_end=report_end)
+    ids = retrieve_group_ids_from_csv(
+        auth, report_start=report_start, report_end=report_end
+    )
     result_data = get_lessons_links(ids=ids)
     return JsonResponse(result_data, safe=False)
 
@@ -105,29 +100,50 @@ def collect_lessons_links_extended(request):
     report_start = request_data_GET.get("report_start", [""])[0]
     report_end = request_data_GET.get("report_end", [""])[0]
     auth = library.lms_auth()
-    ids = retrieve_group_ids_from_csv(auth, report_start=report_start, report_end=report_end)
+    ids = retrieve_group_ids_from_csv(
+        auth, report_start=report_start, report_end=report_end
+    )
     result_data = get_lessons_links_extended(ids=ids)
     response = HttpResponse(
         content_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="lessons_schedule_links.csv"'},
+        headers={
+            "Content-Disposition": 'attachment; filename="lessons_schedule_links.csv"'
+        },
     )
-    response.write(u'\ufeff'.encode('utf8'))
+    response.write("\ufeff".encode("utf8"))
 
     writer = csv.writer(response)
     writer.writerow(
-        ["ID Групи", "Назва групи", "Посилання", "Викладач", "КМ", "Назва курсу", "Дата, час наступного уроку"])
+        [
+            "ID Групи",
+            "Назва групи",
+            "Посилання",
+            "Викладач",
+            "КМ",
+            "Назва курсу",
+            "Дата, час наступного уроку",
+        ]
+    )
     for group in result_data:
-        writer.writerow([group.get("group"), group.get("group_name"), group.get("link"),
-                         group.get("teacher_name"), group.get("curator_name"), group.get("course_name"),
-                         group.get("next_lesson_time")])
-    response['Content-Encoding'] = 'utf-8'
+        writer.writerow(
+            [
+                group.get("group"),
+                group.get("group_name"),
+                group.get("link"),
+                group.get("teacher_name"),
+                group.get("curator_name"),
+                group.get("course_name"),
+                group.get("next_lesson_time"),
+            ]
+        )
+    response["Content-Encoding"] = "utf-8"
     return response
 
 
 def get_possible_report_scales():
     month_report = None
     with open(
-            f"{base_path}/../report_scales.txt", "r", encoding="UTF-8"
+        f"{base_path}/../report_scales.txt", "r", encoding="UTF-8"
     ) as report_scales_fileobj:
         scales = report_scales_fileobj.readlines()
     scales_dict = {}
@@ -151,147 +167,43 @@ def get_possible_report_scales():
     return possible_report_scales
 
 
-@login_required(login_url="/login/")
-def extended_programming_report(request):
-    regional_managers = list(StudentReport.objects.exclude(regional_manager__in=["None", None, "UNKNOWN"]).values_list('regional_manager', flat=True).distinct())
-
-    territorial_managers = list(StudentReport.objects.exclude(territorial_manager__in=["None", None, "UNKNOWN"]).values_list('territorial_manager', flat=True).distinct())
-
-    client_managers = list(StudentReport.objects.exclude(client_manager__in=["None", None, "UNKNOWN"]).values_list('client_manager', flat=True).distinct())
-
-    tutors = list(StudentReport.objects.exclude(tutor__in=["None", None, "UNKNOWN"]).values_list('tutor', flat=True).distinct())
-
-    locations = list(StudentReport.objects.exclude(location__in=["None", None, "UNKNOWN"]).values_list('location', flat=True).distinct())
-
-    teachers = list(StudentReport.objects.exclude(teacher=["None", None, "UNKNOWN"]).values_list('teacher', flat=True).distinct())
-
-    report_scales = get_possible_report_scales()
-    choosen_regionals = ""
-    chosen_business = ""
-    chosen_tm = ""
-    chosen_teacher = ""
-    chosen_cm = ""
-    chosen_tutor = ""
-    chosen_locations = ""
-    chosen_scales = ""
-    chosen_attended = ""
-    chosen_enrolled = ""
-    chosen_payments = ""
-    total_payment = 0
-    total_attended = 0
-    total_enrolled = 0
-    conversion = 0
-    chosen_course = ""
-    reports = []
-    if request.method == "POST":
-        data = request.POST
-        choosen_regional_managers = data.getlist("regional_managers[]")
-        chosen_business = data.getlist("business[]")
-        chosen_cm = data.getlist("client_managers[]")
-        chosen_tm = data.getlist("territorial_managers[]")
-        chosen_tutor = data.getlist("tutors[]")
-        choosen_report_scales = data.getlist("report_scales[]")
-        attended_mc = data.getlist("attended_mc[]")
-        enrolled_mc = data.getlist("enrolled_mc[]")
-        payment = data.getlist("payment[]")
-        chosen_locations = data.getlist("locations[]")
-        chosen_course = data.getlist("courses[]")
-        chosen_teacher = data.getlist("teachers[]")
-
-        reports = StudentReport.objects.exclude(amo_id__isnull=True).filter(is_duplicate=0)
-        if chosen_business:
-            reports = reports.filter(business__in=chosen_business)
-        if choosen_regional_managers:
-            reports = reports.filter(regional_manager__in=choosen_regional_managers)
-
-        if chosen_tm:
-            reports = reports.filter(territorial_manager__in=chosen_tm)
-
-        if chosen_cm:
-            reports = reports.filter(client_manager__in=chosen_cm)
-
-        if chosen_tutor:
-            reports = reports.filter(tutor__in=chosen_tutor)
-        if chosen_locations:
-            reports = reports.filter(location__in=chosen_locations)
-
-        if chosen_teacher:
-            reports = reports.filter(teacher__in=chosen_teacher)
-
-        adjusted_scales = []
-        if choosen_report_scales:
-            for scale in choosen_report_scales:
-                if " - " in scale:
-                    adjusted_scales.append(scale.split(" - ")[0])
-                else:
-                    scale_start, scale_end = scales_new[scale].split("_")
-                    scales = list(StudentReport.objects.filter(start_date__gte=scale_start,
-                                                               start_date__lte=scale_end).values_list('start_date',
-                                                                                                      flat=True).distinct())
-                    for date in scales:
-                        adjusted_scales.append(date.strftime("%Y-%m-%d"))
-
-            reports = reports.filter(start_date__in=adjusted_scales)
-        adjusted_courses = []
-        if chosen_course:
-            for course in chosen_course:
-                adjusted_courses.extend(library.COURSES_READABLE[course])
-
-            reports = reports.filter(course__in=adjusted_courses)
-
-        if attended_mc:
-            reports = reports.filter(attended_mc__in=attended_mc)
-
-        if enrolled_mc:
-            reports = reports.filter(enrolled_mc__in=enrolled_mc)
-
-        if payment:
-            reports = reports.filter(payment__in=payment)
-        chosen_scales = ", ".join(choosen_report_scales) if choosen_report_scales else "Весь час"
-        choosen_regionals = ", ".join(choosen_regional_managers) if choosen_regional_managers else "Всі"
-        chosen_cm = ", ".join(chosen_cm) if chosen_cm else "Всі"
-        chosen_tm = ", ".join(chosen_tm) if chosen_tm else "Всі"
-        chosen_tutor = ", ".join(chosen_tutor) if chosen_tutor else "Всі"
-        chosen_attended = ", ".join(attended_mc).replace("1", "Так").replace("0", "Ні") if attended_mc else "Всі"
-        chosen_enrolled = ", ".join(enrolled_mc).replace("1", "Так").replace("0", "Ні") if enrolled_mc else "Всі"
-        chosen_payments = ", ".join(payment).replace("1", "Так").replace("0", "Ні") if payment else "Всі"
-
-        total_payment = len(reports.filter(payment=1).all())
-        total_attended = len(reports.filter(attended_mc=1).all())
-        total_enrolled = len(reports.filter(enrolled_mc=1).all())
-        conversion = get_conversion(total_payment, total_attended)
-        reports = list(reports.values())
-    html_template = loader.get_template("home/extended_programming_report.html")
-
-    context = {"regional_managers": regional_managers, "report_scales": report_scales, "reports": reports,
-               "choosen_regionals": choosen_regionals, "chosen_scales": chosen_scales, "chosen_attedned": chosen_attended,
-               "chosen_enrolled": chosen_enrolled, "chosen_payments": chosen_payments, "chosen_tm": chosen_tm,
-               "chosen_cm": chosen_cm, "chosen_tutor": chosen_tutor, "territorial_managers": territorial_managers,
-               "client_managers": client_managers, "tutors": tutors, "total_attended": total_attended,
-               "total_payment": total_payment, "total_enrolled": total_enrolled, "сonversion": conversion,
-               "chosen_business": chosen_business, "possible_locations": locations, "chosen_locations": chosen_locations,
-               "chosen_courses": chosen_course, "teachers": teachers, "chosen_teacher": chosen_teacher, "chosen_course": chosen_course
-               }
-    return HttpResponse(html_template.render(context, request))
-
-
 def get_locations_by_regional(regional_name):
-    locations = Location.objects.filter(regional_manager=regional_name).values_list("lms_location_name", flat=True)
+    locations = Location.objects.filter(regional_manager=regional_name).values_list(
+        "lms_location_name", flat=True
+    )
     return locations
 
 
 def get_locations_by_territorial(territorial_name):
-    locations = Location.objects.filter(territorial_manager=territorial_name).values_list("lms_location_name", flat=True)
+    locations = Location.objects.filter(
+        territorial_manager=territorial_name
+    ).values_list("lms_location_name", flat=True)
     return locations
+
+
+@login_required(login_url="/login/")
+def releases(request):
+    pass
+
 
 @login_required(login_url="/login/")
 def consolidation_report(request):
     if get_user_role(request.user) == "admin":
         reports = LessonsConsolidation.objects.filter(status="todo").all()
     elif get_user_role(request.user) == "regional":
-        reports = LessonsConsolidation.objects.filter(lms_location__in=get_locations_by_regional(f"{request.user.last_name} {request.user.first_name}"), status="todo").all()
+        reports = LessonsConsolidation.objects.filter(
+            lms_location__in=get_locations_by_regional(
+                f"{request.user.last_name} {request.user.first_name}"
+            ),
+            status="todo",
+        ).all()
     elif get_user_role(request.user) == "territorial_manager":
-        reports = LessonsConsolidation.objects.filter(lms_location__in=get_locations_by_territorial(f"{request.user.last_name} {request.user.first_name}"), status="todo").all()
+        reports = LessonsConsolidation.objects.filter(
+            lms_location__in=get_locations_by_territorial(
+                f"{request.user.last_name} {request.user.first_name}"
+            ),
+            status="todo",
+        ).all()
     else:
         context = {}
         html_template = loader.get_template("home/page-403.html")
@@ -313,7 +225,9 @@ def consolidation_report(request):
 
 @login_required(login_url="/login/")
 def consolidation_issue_resolve(request, issue_id):
-    issue: LessonsConsolidation = LessonsConsolidation.objects.filter(id=issue_id).first()
+    issue: LessonsConsolidation = LessonsConsolidation.objects.filter(
+        id=issue_id
+    ).first()
     issue.status = "resolved"
     issue.comment = "Незбіжність виправлена"
     issue.save()
@@ -323,7 +237,9 @@ def consolidation_issue_resolve(request, issue_id):
 @login_required(login_url="/login/")
 def consolidation_issue_close(request, issue_id):
     html_template = loader.get_template("home/consolidation_close_reason.html")
-    issue: LessonsConsolidation = LessonsConsolidation.objects.filter(id=issue_id).first()
+    issue: LessonsConsolidation = LessonsConsolidation.objects.filter(
+        id=issue_id
+    ).first()
     user_role = get_user_role(request.user)
     url = "close"
     if request.method == "POST":
@@ -366,6 +282,161 @@ def consolidation_issue_close(request, issue_id):
 
 
 @login_required(login_url="/login/")
+def programming_teacher_report_updated(request):
+    month_report = None
+    possible_report_scales = get_possible_report_scales()
+    if request.method == "POST":
+        form = ReportDateForm(request.POST)
+        if form.is_valid():
+            try:
+                report_start, report_end = form.cleaned_data["report_scale"].split(
+                    " - "
+                )
+            except ValueError:
+                month_report = form.cleaned_data["report_scale"]
+        else:
+            report_start, report_end = possible_report_scales[-1].split(" - ")
+    else:
+        report_start, report_end = possible_report_scales[-1].split(" - ")
+    if not month_report:
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
+        report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
+        report_date_default = f"{report_start} - {report_end}"
+    else:
+        report_start, report_end = scales_new[month_report].split("_")
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
+        report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
+        report_date_default = f"{report_start} - {report_end}"
+
+    user_role = get_user_role(request.user)
+    if user_role == "admin":
+        teachers_report = (
+            TeacherReport.objects.filter(
+                start_date=report_start, end_date=report_end)
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+    elif user_role == "regional":
+        user_name = f"{request.user.last_name} {request.user.first_name}"
+        teachers_report = (
+            TeacherReport.objects.filter(
+                start_date=report_start, end_date=report_end, regional_manager=user_name
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+    elif user_role == "territorial_manager":
+        user_name = f"{request.user.last_name} {request.user.first_name}"
+        teachers_report = (
+            TeacherReport.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+    elif user_role == "territorial_manager_km":
+        user_mapping = UsersMapping.objects.filter(user=request.user).first()
+        user_name = (
+            f"{user_mapping.related_to.last_name} {user_mapping.related_to.first_name}"
+        )
+        teachers_report = (
+            TeacherReport.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        territorial_managers = (
+            StudentReport.objects.filter(
+                start_date__gte=report_start,
+                end_date__lte=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(
+                territorial_manager__isnull=True,
+                territorial_manager="UNKNOWN",
+                regional_manager__isnull=True,
+            )
+            .values_list("territorial_manager", flat=True)
+            .distinct()
+        )
+    else:
+        context = {}
+        html_template = loader.get_template("home/page-403.html")
+        return HttpResponse(html_template.render(context, request))
+    managers = {}
+    totals_tm = {}
+    totals_rm = {}
+    ukrainian_totals = {"Ukraine": {
+        "attended": 0, "payments": 0, "enrolled": 0}}
+    for report in teachers_report:
+        if (
+            report.territorial_manager is not None
+            and report.territorial_manager != "UNKNOWN"
+        ):
+            if report.territorial_manager in totals_tm:
+                totals_tm[report.territorial_manager][
+                    "attended"
+                ] += report.total_attended
+                totals_tm[report.territorial_manager][
+                    "payments"
+                ] += report.total_payments
+                totals_tm[report.territorial_manager][
+                    "enrolled"
+                ] += report.total_enrolled
+            else:
+                totals_tm[report.territorial_manager] = {
+                    "attended": report.total_attended,
+                    "payments": report.total_payments,
+                    "enrolled": report.total_enrolled,
+                }
+            if report.regional_manager in totals_rm:
+                totals_rm[report.regional_manager]["attended"] += report.total_attended
+                totals_rm[report.regional_manager]["payments"] += report.total_payments
+                totals_rm[report.regional_manager]["enrolled"] += report.total_enrolled
+            else:
+                totals_rm[report.regional_manager] = {
+                    "attended": report.total_attended,
+                    "payments": report.total_payments,
+                    "enrolled": report.total_enrolled,
+                }
+            ukrainian_totals["Ukraine"]["attended"] += report.total_attended
+            ukrainian_totals["Ukraine"]["payments"] += report.total_payments
+            ukrainian_totals["Ukraine"]["enrolled"] += report.total_enrolled
+
+    for tm in territorial_managers:
+        rm = get_rm_by_tm(tm)
+        if rm is not None:
+            if rm in managers:
+                managers[rm].append(tm)
+            else:
+                managers[rm] = [tm]
+    context = {
+        "segment": "programming_new",
+        "report_date_default": report_date_default,
+        "username": request.user.username,
+        "report_scales": possible_report_scales,
+        "user_group": get_user_role(request.user),
+        "managers": managers,
+        "user_role": user_role,
+        "totals_tm": totals_tm,
+        "totals_rm": totals_rm,
+        "ukrainian_totals": ukrainian_totals,
+        "teacher_report": teachers_report
+        # "reports_by_course": formatted_courses
+    }
+    html_template = loader.get_template(
+        "home/report_programming_teacher_updated.html")
+    return HttpResponse(html_template.render(context, request))
+
+
+@login_required(login_url="/login/")
 def programming_report_updated(request):
     month_report = None
     possible_report_scales = get_possible_report_scales()
@@ -383,67 +454,176 @@ def programming_report_updated(request):
     else:
         report_start, report_end = possible_report_scales[-1].split(" - ")
     if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     else:
         report_start, report_end = scales_new[month_report].split("_")
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
 
     user_role = get_user_role(request.user)
     if user_role == "admin":
-        location_reports = LocationReport.objects.filter(start_date=report_start, end_date=report_end).exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        client_manager_reports = ClientManagerReport.objects.filter(start_date=report_start,
-                                                                    end_date=report_end).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        territorial_managers = StudentReport.objects.filter(start_date__gte=report_start, end_date__lte=report_end).exclude(
-            territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
-        course_report = CourseReport.objects.filter(start_date=report_start,
-                                                                    end_date=report_end).exclude(
-            territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
+        location_reports = (
+            LocationReport.objects.filter(
+                start_date=report_start, end_date=report_end)
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        client_manager_reports = (
+            ClientManagerReport.objects.filter(
+                start_date=report_start, end_date=report_end
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        territorial_managers = (
+            StudentReport.objects.filter(
+                start_date__gte=report_start, end_date__lte=report_end
+            )
+            .exclude(
+                territorial_manager__isnull=True,
+                territorial_manager="UNKNOWN",
+                regional_manager__isnull=True,
+            )
+            .values_list("territorial_manager", flat=True)
+            .distinct()
+        )
+        course_report = (
+            CourseReport.objects.filter(
+                start_date=report_start, end_date=report_end)
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
     elif user_role == "regional":
         user_name = f"{request.user.last_name} {request.user.first_name}"
-        location_reports = LocationReport.objects.filter(start_date=report_start, end_date=report_end, regional_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        client_manager_reports = ClientManagerReport.objects.filter(start_date=report_start,
-                                                                    end_date=report_end, regional_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        territorial_managers = StudentReport.objects.filter(start_date__gte=report_start,
-                                                            end_date__lte=report_end, regional_manager=user_name).exclude(
-            territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
-        course_report = ClientManagerReport.objects.filter(start_date=report_start,
-                                                                    end_date=report_end,
-                                                                    regional_manager=user_name).exclude(
-            territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
+        location_reports = (
+            LocationReport.objects.filter(
+                start_date=report_start, end_date=report_end, regional_manager=user_name
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        client_manager_reports = (
+            ClientManagerReport.objects.filter(
+                start_date=report_start, end_date=report_end, regional_manager=user_name
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        territorial_managers = (
+            StudentReport.objects.filter(
+                start_date__gte=report_start,
+                end_date__lte=report_end,
+                regional_manager=user_name,
+            )
+            .exclude(
+                territorial_manager__isnull=True,
+                territorial_manager="UNKNOWN",
+                regional_manager__isnull=True,
+            )
+            .values_list("territorial_manager", flat=True)
+            .distinct()
+        )
+        course_report = (
+            ClientManagerReport.objects.filter(
+                start_date=report_start, end_date=report_end, regional_manager=user_name
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
     elif user_role == "territorial_manager":
         user_name = f"{request.user.last_name} {request.user.first_name}"
-        location_reports = LocationReport.objects.filter(start_date=report_start, end_date=report_end,
-                                                         territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        client_manager_reports = ClientManagerReport.objects.filter(start_date=report_start,
-                                                                    end_date=report_end,
-                                                                    territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        territorial_managers = StudentReport.objects.filter(start_date__gte=report_start,
-                                                            end_date__lte=report_end,
-                                                            territorial_manager=user_name).exclude(
-            territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
-        course_report = CourseReport.objects.filter(start_date=report_start,
-                                                                    end_date=report_end,
-                                                                    territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
+        location_reports = (
+            LocationReport.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        client_manager_reports = (
+            ClientManagerReport.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        territorial_managers = (
+            StudentReport.objects.filter(
+                start_date__gte=report_start,
+                end_date__lte=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(
+                territorial_manager__isnull=True,
+                territorial_manager="UNKNOWN",
+                regional_manager__isnull=True,
+            )
+            .values_list("territorial_manager", flat=True)
+            .distinct()
+        )
+        course_report = (
+            CourseReport.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
     elif user_role == "territorial_manager_km":
         user_mapping = UsersMapping.objects.filter(user=request.user).first()
-        user_name = f"{user_mapping.related_to.last_name} {user_mapping.related_to.first_name}"
-        location_reports = LocationReport.objects.filter(start_date=report_start, end_date=report_end,
-                                                         territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        client_manager_reports = ClientManagerReport.objects.filter(start_date=report_start,
-                                                                    end_date=report_end,
-                                                                    territorial_manager=user_name).exclude( territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        course_report = CourseReport.objects.filter(start_date=report_start,
-                                                                    end_date=report_end,
-                                                                    territorial_manager=user_name).exclude(
-            territorial_manager="UNKNOWN", regional_manager__isnull=True).all()
-        territorial_managers = StudentReport.objects.filter(start_date__gte=report_start,
-                                                            end_date__lte=report_end,
-                                                            territorial_manager=user_name).exclude(
-            territorial_manager__isnull=True, territorial_manager="UNKNOWN", regional_manager__isnull=True).values_list("territorial_manager", flat=True).distinct()
+        user_name = (
+            f"{user_mapping.related_to.last_name} {user_mapping.related_to.first_name}"
+        )
+        location_reports = (
+            LocationReport.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        client_manager_reports = (
+            ClientManagerReport.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        course_report = (
+            CourseReport.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+        territorial_managers = (
+            StudentReport.objects.filter(
+                start_date__gte=report_start,
+                end_date__lte=report_end,
+                territorial_manager=user_name,
+            )
+            .exclude(
+                territorial_manager__isnull=True,
+                territorial_manager="UNKNOWN",
+                regional_manager__isnull=True,
+            )
+            .values_list("territorial_manager", flat=True)
+            .distinct()
+        )
     else:
         context = {}
         html_template = loader.get_template("home/page-403.html")
@@ -451,18 +631,28 @@ def programming_report_updated(request):
     managers = {}
     totals_tm = {}
     totals_rm = {}
-    ukrainian_totals = {"Ukraine": {"attended": 0, "payments": 0, "enrolled": 0}}
+    ukrainian_totals = {"Ukraine": {
+        "attended": 0, "payments": 0, "enrolled": 0}}
     for report in client_manager_reports:
-        if report.territorial_manager is not None and report.territorial_manager != "UNKNOWN":
+        if (
+            report.territorial_manager is not None
+            and report.territorial_manager != "UNKNOWN"
+        ):
             if report.territorial_manager in totals_tm:
-                totals_tm[report.territorial_manager]["attended"] += report.total_attended
-                totals_tm[report.territorial_manager]["payments"] += report.total_payments
-                totals_tm[report.territorial_manager]["enrolled"] += report.total_enrolled
+                totals_tm[report.territorial_manager][
+                    "attended"
+                ] += report.total_attended
+                totals_tm[report.territorial_manager][
+                    "payments"
+                ] += report.total_payments
+                totals_tm[report.territorial_manager][
+                    "enrolled"
+                ] += report.total_enrolled
             else:
                 totals_tm[report.territorial_manager] = {
                     "attended": report.total_attended,
                     "payments": report.total_payments,
-                    "enrolled": report.total_enrolled
+                    "enrolled": report.total_enrolled,
                 }
             if report.regional_manager in totals_rm:
                 totals_rm[report.regional_manager]["attended"] += report.total_attended
@@ -472,7 +662,7 @@ def programming_report_updated(request):
                 totals_rm[report.regional_manager] = {
                     "attended": report.total_attended,
                     "payments": report.total_payments,
-                    "enrolled": report.total_enrolled
+                    "enrolled": report.total_enrolled,
                 }
             ukrainian_totals["Ukraine"]["attended"] += report.total_attended
             ukrainian_totals["Ukraine"]["payments"] += report.total_payments
@@ -502,686 +692,6 @@ def programming_report_updated(request):
         # "reports_by_course": formatted_courses
     }
     html_template = loader.get_template("home/report_programming_updated.html")
-    return HttpResponse(html_template.render(context, request))
-
-
-@login_required(login_url="/login/")
-def programming_report(request):
-    month_report = None
-    possible_report_scales = get_possible_report_scales()
-    if request.method == "POST":
-        form = ReportDateForm(request.POST)
-        if form.is_valid():
-            try:
-                report_start, report_end = form.cleaned_data["report_scale"].split(
-                    " - "
-                )
-            except ValueError:
-                month_report = form.cleaned_data["report_scale"]
-        else:
-            report_start, report_end = possible_report_scales[-1].split(" - ")
-    else:
-        report_start, report_end = possible_report_scales[-1].split(" - ")
-    if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
-        report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
-        report_date_default = f"{report_start} - {report_end}"
-    else:
-        report_start, report_end = scales_new[month_report].split("_")
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
-        report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
-        report_date_default = f"{report_start} - {report_end}"
-
-    reports = StudentReport.objects.filter(start_date__gte=report_start,
-                                           end_date__lte=report_end,
-                                           is_duplicate=0,
-                                           business="programming").exclude(amo_id=None)
-    if get_user_role(request.user) == "admin":
-        reports = reports
-
-    elif get_user_role(request.user) == "regional":
-        reports = reports.filter(regional_manager=f"{request.user.last_name} {request.user.first_name}")
-    elif get_user_role(request.user) == "territorial_manager":
-        reports = reports.filter(territorial_manager=f"{request.user.last_name} {request.user.first_name}")
-    elif get_user_role(request.user) == "territorial_manager_km":
-        try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-            if manager is None:
-                return HttpResponseForbidden(
-                    "Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-            else:
-                reports = reports.filter(territorial_manager=f"{manager.last_name} {manager.first_name}")
-        except:
-            reports = reports.filter(client_manager=f"{request.user.last_name} {request.user.first_name}")
-
-    all_locations = list(reports.values_list("location"))
-    territorial_managers = list(reports.values_list("territorial_manager"))
-    all_client_managers = list(reports.values_list("client_manager"))
-    all_courses = list(reports.exclude(course=None).values_list("course"))
-    all_courses.sort()
-    totals = {"Ukraine": {"enrolled": 0, "attended": 0, "payments": 0}}
-
-    reports_by_locations = {}
-    for location in all_locations:
-        if location is None:
-            continue
-        location_payments = reports.filter(location=location, payment=1).all()
-        location_attendeds = reports.filter(location=location, attended_mc=1).all()
-        location_enrolled = reports.filter(location=location, enrolled_mc=1)
-        location_obj = Location.objects.filter(lms_location_name=location).first()
-        if location_obj:
-            territorial_manager = location_obj.territorial_manager
-            regional_manager = location_obj.regional_manager
-            client_manager = location_obj.client_manager
-        else:
-            try:
-                territorial_manager = location_enrolled[0].territorial_manager
-                regional_manager = location_enrolled[0].territorial_manager
-                client_manager = location_enrolled[0].territorial_manager
-            except:
-                continue
-        reports_by_locations[location] = {
-            "enrolled": len(location_enrolled),
-            "attended": len(location_attendeds),
-            "payments": len(location_payments),
-            "territorial_manager": territorial_manager,
-            "regional_manager": regional_manager,
-            "client_manager": client_manager,
-        }
-        totals["Ukraine"]["enrolled"] += len(location_enrolled)
-        totals["Ukraine"]["attended"] += len(location_attendeds)
-        totals["Ukraine"]["payments"] += len(location_payments)
-
-    reports_by_cm = {}
-    for cm in all_client_managers:
-        if cm is None:
-            continue
-        cm_payments = reports.filter(client_manager=cm, payment=1).all()
-        cm_attendeds = reports.filter(client_manager=cm, attended_mc=1).all()
-        cm_enrolled = reports.filter(client_manager=cm, enrolled_mc=1).all()
-        location_obj = Location.objects.filter(client_manager=cm).first()
-        if location_obj:
-            territorial_manager = location_obj.territorial_manager
-            regional_manager = location_obj.regional_manager
-        else:
-            try:
-                territorial_manager = cm_enrolled[0].territorial_manager
-                regional_manager = cm_enrolled[0].territorial_manager
-            except:
-                continue
-
-        reports_by_cm[cm] = {
-            "enrolled": len(cm_enrolled),
-            "attended": len(cm_attendeds),
-            "payments": len(cm_payments),
-            "territorial_manager": territorial_manager,
-            "regional_manager": regional_manager,
-        }
-
-    managers = {}
-    for tm in territorial_managers:
-        rm = get_rm_by_tm(tm)
-        if rm is not None:
-            if rm in managers:
-                managers[rm].append(tm)
-            else:
-                managers[rm] = [tm]
-
-    reports_by_course = {}
-    for course in all_courses:
-        course_payments = reports.filter(course=course, payment=1).all()
-        course_attended = reports.filter(course=course, attended_mc=1).all()
-        course_enrolled = reports.filter(course=course, enrolled_mc=1).all()
-        reports_by_course[course] = {}
-        for rm in managers:
-            reports_by_course[course][rm] = {}
-            for tm in managers[rm]:
-                payments = course_payments.filter(regional_manager=rm, territorial_manager=tm).all()
-                enrolled = course_enrolled.filter(regional_manager=rm, territorial_manager=tm).all()
-                attended = course_attended.filter(regional_manager=rm, territorial_manager=tm).all()
-                reports_by_course[course][rm][tm] = {}
-                reports_by_course[course][rm][tm]["payments"] = len(payments)
-                reports_by_course[course][rm][tm]["enrolled"] = len(enrolled)
-                reports_by_course[course][rm][tm]["attended"] = len(attended)
-    duplicate_reports_by_course = copy.deepcopy(reports_by_course)
-    for course in duplicate_reports_by_course:
-        for rm in duplicate_reports_by_course[course]:
-            if rm is None:
-                continue
-            for tm in duplicate_reports_by_course[course][rm]:
-                if duplicate_reports_by_course[course][rm][tm]["payments"] == 0 and \
-                        duplicate_reports_by_course[course][rm][tm]["enrolled"] == 0 and \
-                        duplicate_reports_by_course[course][rm][tm]["attended"] == 0:
-                    del reports_by_course[course][rm][tm]
-
-    formatted_courses = {}
-    for course in reports_by_course:
-        course_name = library.get_course_by_course_name(course, translate=True)
-        if course_name not in formatted_courses:
-            formatted_courses[course_name] = reports_by_course[course]
-
-        else:
-            for regional in reports_by_course[course]:
-                if regional not in formatted_courses[course_name]:
-                    formatted_courses[course_name][regional] = {}
-                for tm in reports_by_course[course][regional]:
-                    if tm not in formatted_courses[course_name][regional]:
-                        formatted_courses[course_name][regional][tm] = reports_by_course[course][regional][tm]
-                    else:
-                        formatted_courses[course_name][regional][tm]["attended"] += \
-                        reports_by_course[course][regional][tm]["attended"]
-                        formatted_courses[course_name][regional][tm]["enrolled"] += \
-                        reports_by_course[course][regional][tm]["enrolled"]
-                        formatted_courses[course_name][regional][tm]["payments"] += \
-                        reports_by_course[course][regional][tm]["payments"]
-
-    totals_rm = {}
-    totals_tm = {}
-    for location in reports_by_locations:
-        if reports_by_locations[location]["regional_manager"] in totals_rm:
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "attended"
-            ] += reports_by_locations[location]["attended"]
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "enrolled"
-            ] += reports_by_locations[location]["enrolled"]
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "payments"
-            ] += reports_by_locations[location]["payments"]
-        else:
-            totals_rm[reports_by_locations[location]["regional_manager"]] = {}
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "attended"
-            ] = reports_by_locations[location]["attended"]
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "enrolled"
-            ] = reports_by_locations[location]["enrolled"]
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "payments"
-            ] = reports_by_locations[location]["payments"]
-        if reports_by_locations[location]["territorial_manager"] in totals_tm:
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "attended"
-            ] += reports_by_locations[location]["attended"]
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "enrolled"
-            ] += reports_by_locations[location]["enrolled"]
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "payments"
-            ] += reports_by_locations[location]["payments"]
-        else:
-            totals_tm[reports_by_locations[location]["territorial_manager"]] = {}
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "attended"
-            ] = reports_by_locations[location]["attended"]
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "enrolled"
-            ] = reports_by_locations[location]["enrolled"]
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "payments"
-            ] = reports_by_locations[location]["payments"]
-
-    context = {
-        "segment": "programming_new",
-        "report_date_default": report_date_default,
-        "username": request.user.username,
-        "report_scales": possible_report_scales,
-        "user_group": get_user_role(request.user),
-        "reports_by_locations": reports_by_locations,
-        "managers": managers,
-        "totals_rm": totals_rm,
-        "totals_tm": totals_tm,
-        "reports_by_cm": reports_by_cm,
-        "totals": totals,
-        "user_role": get_user_role(request.user),
-        "reports_by_course": formatted_courses
-    }
-    html_template = loader.get_template("home/report_programming_new_admin.html")
-    return HttpResponse(html_template.render(context, request))
-
-
-@login_required(login_url="/login/")
-def programming_new(request):
-    month_report = None
-    with open(
-        f"{base_path}/../report_scales.txt", "r", encoding="UTF-8"
-    ) as report_scales_fileobj:
-        scales = report_scales_fileobj.readlines()
-    scales_dict = {}
-    for i in range(len(scales)):
-        scales[i] = scales[i].replace("\n", "").replace("_", " - ")
-        month = scales[i].split(":")[0]
-        try:
-            dates = scales[i].split(":")[1]
-        except:
-            dates = None
-        if month not in scales_dict:
-            scales_dict[month] = [dates]
-        else:
-            scales_dict[month].append(dates)
-    possible_report_scales = []
-    for key, value in scales_dict.items():
-        possible_report_scales.append(key)
-        for val in value:
-            if val is not None:
-                possible_report_scales.append(val)
-    if request.method == "POST":
-        form = ReportDateForm(request.POST)
-        if form.is_valid():
-            try:
-                report_start, report_end = form.cleaned_data["report_scale"].split(
-                    " - "
-                )
-            except ValueError:
-                month_report = form.cleaned_data["report_scale"]
-        else:
-            report_start, report_end = possible_report_scales[-1].split(" - ")
-    else:
-        report_start, report_end = possible_report_scales[-1].split(" - ")
-    if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
-        report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
-        report_date_default = f"{report_start} - {report_end}"
-    else:
-        report_start, report_end = scales_new[month_report].split("_")
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
-        report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
-        report_date_default = f"{report_start} - {report_end}"
-    if get_user_role(request.user) == "admin":
-        reports = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-            )
-            .order_by("regional_manager")
-            .exclude(amo_id=None)
-            .all()
-        )
-    elif get_user_role(request.user) == "regional":
-        reports = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                regional_manager=f"{request.user.last_name} {request.user.first_name}",
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-    elif get_user_role(request.user) == "territorial_manager":
-        reports = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                territorial_manager=f"{request.user.last_name} {request.user.first_name}",
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-    elif get_user_role(request.user) == "territorial_manager_km":
-        try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
-            if manager is None:
-                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
-            else:
-
-                reports = (
-                    StudentReport.objects.filter(
-                        start_date__gte=report_start,
-                        end_date__lte=report_end,
-                        is_duplicate=0,
-                        business="programming",
-                        territorial_manager=f"{manager.last_name} {manager.first_name}",
-                    )
-                    .exclude(amo_id=None)
-                    .all()
-                )
-        except:
-            reports = (
-                StudentReport.objects.filter(
-                    start_date__gte=report_start,
-                    end_date__lte=report_end,
-                    is_duplicate=0,
-                    business="programming",
-                    territorial_manager=f"{request.user.last_name} {request.user.first_name}",
-                )
-                .exclude(amo_id=None)
-                .all()
-            )
-    all_locations = []
-    territorial_managers = []
-    all_client_managers = []
-    all_courses = []
-    for report in reports:
-        if report.location not in all_locations:
-            all_locations.append(report.location)
-        if report.client_manager not in all_client_managers:
-            all_client_managers.append(report.client_manager)
-        if report.course not in all_courses and report.course:
-            all_courses.append(report.course)
-        if (
-            report.territorial_manager
-            and report.territorial_manager not in territorial_managers
-        ):
-            territorial_managers.append(report.territorial_manager)
-    all_courses.sort()
-    totals = {"Ukraine": {"enrolled": 0, "attended": 0, "payments": 0}}
-    reports_by_locations = {}
-    for location in all_locations:
-        if location is None:
-            continue
-        location_payments = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                payment=1,
-                location=location,
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-        location_attendeds = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                attended_mc=1,
-                location=location,
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-        location_enrolled = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                enrolled_mc=1,
-                location=location,
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-        location_obj = Location.objects.filter(lms_location_name=location).first()
-        if location_obj:
-            territorial_manager = location_obj.territorial_manager
-            regional_manager = location_obj.regional_manager
-            client_manager = location_obj.client_manager
-        else:
-            try:
-                territorial_manager = location_enrolled[0].territorial_manager
-                regional_manager = location_enrolled[0].territorial_manager
-                client_manager = location_enrolled[0].territorial_manager
-
-            except:
-                continue
-        reports_by_locations[location] = {
-            "enrolled": len(location_enrolled),
-            "attended": len(location_attendeds),
-            "payments": len(location_payments),
-            "territorial_manager": territorial_manager,
-            "regional_manager": regional_manager,
-            "client_manager": client_manager,
-        }
-        totals["Ukraine"]["enrolled"] += len(location_enrolled)
-        totals["Ukraine"]["attended"] += len(location_attendeds)
-        totals["Ukraine"]["payments"] += len(location_payments)
-
-    reports_by_cm = {}
-    for cm in all_client_managers:
-        if cm is None:
-            continue
-        location_payments = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                payment=1,
-                client_manager=cm,
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-        location_attendeds = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                attended_mc=1,
-                client_manager=cm,
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-        location_enrolled = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                enrolled_mc=1,
-                client_manager=cm,
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-        location_obj = Location.objects.filter(client_manager=cm).first()
-        if location_obj:
-            territorial_manager = location_obj.territorial_manager
-            regional_manager = location_obj.regional_manager
-        else:
-            print("CM NOT IN LIST!!!", cm)
-            try:
-                territorial_manager = location_enrolled[0].territorial_manager
-                regional_manager = location_enrolled[0].territorial_manager
-            except:
-                continue
-
-        reports_by_cm[cm] = {
-            "enrolled": len(location_enrolled),
-            "attended": len(location_attendeds),
-            "payments": len(location_payments),
-            "territorial_manager": territorial_manager,
-            "regional_manager": regional_manager,
-        }
-
-    reports_by_course = {}
-    for course in all_courses:
-        course_payments = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                payment=1,
-                course=course
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-        course_attended = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                attended_mc=1,
-                course=course
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-        course_enrolled = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                enrolled_mc=1,
-                course=course
-            )
-            .exclude(amo_id=None)
-            .all()
-        )
-
-
-
-
-    totals_rm = {}
-    totals_tm = {}
-    for location in reports_by_locations:
-        if reports_by_locations[location]["regional_manager"] in totals_rm:
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "attended"
-            ] += reports_by_locations[location]["attended"]
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "enrolled"
-            ] += reports_by_locations[location]["enrolled"]
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "payments"
-            ] += reports_by_locations[location]["payments"]
-        else:
-            totals_rm[reports_by_locations[location]["regional_manager"]] = {}
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "attended"
-            ] = reports_by_locations[location]["attended"]
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "enrolled"
-            ] = reports_by_locations[location]["enrolled"]
-            totals_rm[reports_by_locations[location]["regional_manager"]][
-                "payments"
-            ] = reports_by_locations[location]["payments"]
-        if reports_by_locations[location]["territorial_manager"] in totals_tm:
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "attended"
-            ] += reports_by_locations[location]["attended"]
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "enrolled"
-            ] += reports_by_locations[location]["enrolled"]
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "payments"
-            ] += reports_by_locations[location]["payments"]
-        else:
-            totals_tm[reports_by_locations[location]["territorial_manager"]] = {}
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "attended"
-            ] = reports_by_locations[location]["attended"]
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "enrolled"
-            ] = reports_by_locations[location]["enrolled"]
-            totals_tm[reports_by_locations[location]["territorial_manager"]][
-                "payments"
-            ] = reports_by_locations[location]["payments"]
-    managers = {}
-    for tm in territorial_managers:
-        rm = get_rm_by_tm(tm)
-        if rm is not None:
-            if rm in managers:
-                managers[rm].append(tm)
-            else:
-                managers[rm] = [tm]
-
-    reports_by_course = {}
-    for course in all_courses:
-        course_payments = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                payment=1,
-                course=course
-            )
-            .exclude(amo_id=None)
-        )
-        course_attended = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                attended_mc=1,
-                course=course
-            )
-            .exclude(amo_id=None)
-        )
-        course_enrolled = (
-            StudentReport.objects.filter(
-                start_date__gte=report_start,
-                end_date__lte=report_end,
-                is_duplicate=0,
-                business="programming",
-                enrolled_mc=1,
-                course=course
-            )
-            .exclude(amo_id=None)
-        )
-        reports_by_course[course] = {}
-        for rm in managers:
-            reports_by_course[course][rm] = {}
-            for tm in managers[rm]:
-                payments = course_payments.filter(regional_manager=rm, territorial_manager=tm).all()
-                enrolled = course_enrolled.filter(regional_manager=rm, territorial_manager=tm).all()
-                attended = course_attended.filter(regional_manager=rm, territorial_manager=tm).all()
-                reports_by_course[course][rm][tm] = {}
-                reports_by_course[course][rm][tm]["payments"] = len(payments)
-                reports_by_course[course][rm][tm]["enrolled"] = len(enrolled)
-                reports_by_course[course][rm][tm]["attended"] = len(attended)
-    duplicate_reports_by_course = copy.deepcopy(reports_by_course)
-    for course in duplicate_reports_by_course:
-        for rm in duplicate_reports_by_course[course]:
-            if rm is None:
-                continue
-            for tm in duplicate_reports_by_course[course][rm]:
-                if duplicate_reports_by_course[course][rm][tm]["payments"] == 0 and duplicate_reports_by_course[course][rm][tm]["enrolled"] == 0 and duplicate_reports_by_course[course][rm][tm]["attended"] == 0:
-                    del reports_by_course[course][rm][tm]
-
-    formatted_courses = {}
-    for course in reports_by_course:
-        course_name = library.get_course_by_course_name(course, translate=True)
-        if course_name not in formatted_courses:
-            formatted_courses[course_name] = reports_by_course[course]
-
-        else:
-            for regional in reports_by_course[course]:
-                if regional not in formatted_courses[course_name]:
-                    formatted_courses[course_name][regional] = {}
-                for tm in reports_by_course[course][regional]:
-                    if tm not in formatted_courses[course_name][regional]:
-                        formatted_courses[course_name][regional][tm] = reports_by_course[course][regional][tm]
-                    else:
-                        formatted_courses[course_name][regional][tm]["attended"] += reports_by_course[course][regional][tm]["attended"]
-                        formatted_courses[course_name][regional][tm]["enrolled"] += reports_by_course[course][regional][tm]["enrolled"]
-                        formatted_courses[course_name][regional][tm]["payments"] += reports_by_course[course][regional][tm]["payments"]
-
-    context = {
-        "segment": "programming_new",
-        "report_date_default": report_date_default,
-        "username": request.user.username,
-        "report_scales": possible_report_scales,
-        "user_group": get_user_role(request.user),
-        "reports_by_locations": reports_by_locations,
-        "managers": managers,
-        "totals_rm": totals_rm,
-        "totals_tm": totals_tm,
-        "reports_by_cm": reports_by_cm,
-        # "'"totals_km': total_kms,
-        "totals": totals,
-        "user_role": get_user_role(request.user),
-        "reports_by_course": formatted_courses
-    }
-    html_template = loader.get_template("home/report_programming_new_admin.html")
     return HttpResponse(html_template.render(context, request))
 
 
@@ -1224,12 +734,14 @@ def english_new(request):
     else:
         report_start, report_end = possible_report_scales[-1].split(" - ")
     if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     else:
         report_start, report_end = scales_new[month_report].split("_")
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     if get_user_role(request.user) == "admin":
@@ -1271,9 +783,14 @@ def english_new(request):
 
     elif get_user_role(request.user) == "territorial_manager_km":
         try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            manager = (
+                UsersMapping.objects.filter(
+                    user_id=request.user.id).first().related_to
+            )
             if manager is None:
-                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+                return HttpResponseForbidden(
+                    "Ви не привʼязані до територіального менеджера. Зверніться до адміністратора."
+                )
             else:
                 reports = (
                     StudentReport.objects.filter(
@@ -1350,7 +867,8 @@ def english_new(request):
             .exclude(amo_id=None)
             .all()
         )
-        location_obj = Location.objects.filter(lms_location_name=location).first()
+        location_obj = Location.objects.filter(
+            lms_location_name=location).first()
         if location_obj:
             territorial_manager = location_obj.territorial_manager
             regional_manager = location_obj.regional_manager
@@ -1415,7 +933,8 @@ def english_new(request):
             .exclude(amo_id=None)
             .all()
         )
-        location_obj = Location.objects.filter(client_manager_english=cm).first()
+        location_obj = Location.objects.filter(
+            client_manager_english=cm).first()
         if location_obj:
             territorial_manager = location_obj.territorial_manager
             regional_manager = location_obj.regional_manager
@@ -1484,7 +1003,8 @@ def english_new(request):
                 "payments"
             ] += reports_by_locations[location]["payments"]
         else:
-            totals_tm[reports_by_locations[location]["territorial_manager"]] = {}
+            totals_tm[reports_by_locations[location]
+                      ["territorial_manager"]] = {}
             totals_tm[reports_by_locations[location]["territorial_manager"]][
                 "attended"
             ] = reports_by_locations[location]["attended"]
@@ -1560,12 +1080,14 @@ def programming_tutor_new(request):
     else:
         report_start, report_end = possible_report_scales[-1].split(" - ")
     if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     else:
         report_start, report_end = scales_new[month_report].split("_")
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     if get_user_role(request.user) == "admin":
@@ -1606,9 +1128,14 @@ def programming_tutor_new(request):
         )
     elif get_user_role(request.user) == "territorial_manager_km":
         try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            manager = (
+                UsersMapping.objects.filter(
+                    user_id=request.user.id).first().related_to
+            )
             if manager is None:
-                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+                return HttpResponseForbidden(
+                    "Ви не привʼязані до територіального менеджера. Зверніться до адміністратора."
+                )
             else:
                 reports = (
                     StudentReport.objects.filter(
@@ -1654,15 +1181,11 @@ def programming_tutor_new(request):
         if report.tutor not in all_tutors:
             all_tutors.append(report.tutor)
         if (
-                report.territorial_manager
-                and report.territorial_manager not in territorial_managers
+            report.territorial_manager
+            and report.territorial_manager not in territorial_managers
         ):
             territorial_managers.append(report.territorial_manager)
-    totals = {
-        "Ukraine": {
-            "enrolled": 0,
-            "attended": 0,
-            "payments": 0}}
+    totals = {"Ukraine": {"enrolled": 0, "attended": 0, "payments": 0}}
     reports_by_tutor = {}
     for tutor in all_tutors:
         if tutor is None:
@@ -1708,7 +1231,11 @@ def programming_tutor_new(request):
                 .exclude(amo_id=None)
                 .all()
             )
-            if len(location_payments) == 0 and len(location_enrolled) == 0 and len(location_attendeds) == 0:
+            if (
+                len(location_payments) == 0
+                and len(location_enrolled) == 0
+                and len(location_attendeds) == 0
+            ):
                 continue
             try:
                 regional_manager, _ = get_rm_tm_by_tutor(tutor)
@@ -1796,7 +1323,8 @@ def programming_tutor_new(request):
         "totals": totals,
         "user_role": get_user_role(request.user),
     }
-    html_template = loader.get_template("home/report_programming_tutor_new_admin.html")
+    html_template = loader.get_template(
+        "home/report_programming_tutor_new_admin.html")
     return HttpResponse(html_template.render(context, request))
 
 
@@ -1839,12 +1367,14 @@ def english_tutor_new(request):
     else:
         report_start, report_end = possible_report_scales[-1].split(" - ")
     if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     else:
         report_start, report_end = scales_new[month_report].split("_")
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     if get_user_role(request.user) == "admin":
@@ -1882,9 +1412,14 @@ def english_tutor_new(request):
         )
     elif get_user_role(request.user) == "territorial_manager_km":
         try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            manager = (
+                UsersMapping.objects.filter(
+                    user_id=request.user.id).first().related_to
+            )
             if manager is None:
-                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+                return HttpResponseForbidden(
+                    "Ви не привʼязані до територіального менеджера. Зверніться до адміністратора."
+                )
             else:
                 reports = (
                     StudentReport.objects.filter(
@@ -1974,7 +1509,11 @@ def english_tutor_new(request):
                 .exclude(amo_id=None)
                 .all()
             )
-            if len(location_payments) == 0 and len(location_enrolled) == 0 and len(location_attendeds) == 0:
+            if (
+                len(location_payments) == 0
+                and len(location_enrolled) == 0
+                and len(location_attendeds) == 0
+            ):
                 continue
             regional_manager, _ = get_rm_tm_by_tutor(tutor)
 
@@ -2059,7 +1598,8 @@ def english_tutor_new(request):
         "totals": totals,
         "user_role": get_user_role(request.user),
     }
-    html_template = loader.get_template("home/report_english_tutor_new_admin.html")
+    html_template = loader.get_template(
+        "home/report_english_tutor_new_admin.html")
     return HttpResponse(html_template.render(context, request))
 
 
@@ -2102,12 +1642,14 @@ def programming_teacher_new(request):
     else:
         report_start, report_end = possible_report_scales[-1].split(" - ")
     if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     else:
         report_start, report_end = scales_new[month_report].split("_")
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     if get_user_role(request.user) == "admin":
@@ -2148,9 +1690,14 @@ def programming_teacher_new(request):
         )
     elif get_user_role(request.user) == "territorial_manager_km":
         try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            manager = (
+                UsersMapping.objects.filter(
+                    user_id=request.user.id).first().related_to
+            )
             if manager is None:
-                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+                return HttpResponseForbidden(
+                    "Ви не привʼязані до територіального менеджера. Зверніться до адміністратора."
+                )
             else:
                 reports = (
                     StudentReport.objects.filter(
@@ -2191,24 +1738,38 @@ def programming_teacher_new(request):
     all_tutors_by_rm = {}
     if get_user_role(request.user) == "regional":
         all_regionals = [f"{request.user.last_name} {request.user.first_name}"]
-        locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+        locations = Location.objects.filter(
+            regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "territorial_manager":
-        regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
+        regional = get_rm_by_tm(
+            f"{request.user.last_name} {request.user.first_name}")
         all_regionals = [regional]
-        locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+        locations = Location.objects.filter(
+            regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "territorial_manager_km":
         try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            manager = (
+                UsersMapping.objects.filter(
+                    user_id=request.user.id).first().related_to
+            )
             if manager is None:
-                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+                return HttpResponseForbidden(
+                    "Ви не привʼязані до територіального менеджера. Зверніться до адміністратора."
+                )
             else:
-                regional = get_rm_by_tm(f"{manager.last_name} {manager.first_name}")
+                regional = get_rm_by_tm(
+                    f"{manager.last_name} {manager.first_name}")
                 all_regionals = [regional]
-                locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+                locations = Location.objects.filter(
+                    regional_manager=all_regionals[0]
+                ).all()
         except:
-            regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
+            regional = get_rm_by_tm(
+                f"{request.user.last_name} {request.user.first_name}"
+            )
             all_regionals = [regional]
-            locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+            locations = Location.objects.filter(
+                regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "tutor":
         regional = get_rm_by_tutor_programming(
             f"{request.user.last_name} {request.user.first_name}"
@@ -2315,7 +1876,8 @@ def programming_teacher_new(request):
         # 'totals': totals,
         "user_role": get_user_role(request.user),
     }
-    html_template = loader.get_template("home/report_programming_teacher_admin.html")
+    html_template = loader.get_template(
+        "home/report_programming_teacher_admin.html")
     return HttpResponse(html_template.render(context, request))
 
 
@@ -2358,12 +1920,14 @@ def english_teacher_new(request):
     else:
         report_start, report_end = possible_report_scales[-1].split(" - ")
     if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     else:
         report_start, report_end = scales_new[month_report].split("_")
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     if get_user_role(request.user) == "admin":
@@ -2401,9 +1965,14 @@ def english_teacher_new(request):
         )
     elif get_user_role(request.user) == "territorial_manager_km":
         try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            manager = (
+                UsersMapping.objects.filter(
+                    user_id=request.user.id).first().related_to
+            )
             if manager is None:
-                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+                return HttpResponseForbidden(
+                    "Ви не привʼязані до територіального менеджера. Зверніться до адміністратора."
+                )
             else:
                 reports = (
                     StudentReport.objects.filter(
@@ -2442,24 +2011,38 @@ def english_teacher_new(request):
     all_tutors_by_rm = {}
     if get_user_role(request.user) == "regional":
         all_regionals = [f"{request.user.last_name} {request.user.first_name}"]
-        locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+        locations = Location.objects.filter(
+            regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "territorial_manager":
-        regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
+        regional = get_rm_by_tm(
+            f"{request.user.last_name} {request.user.first_name}")
         all_regionals = [regional]
-        locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+        locations = Location.objects.filter(
+            regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "territorial_manager_km":
         try:
-            manager = UsersMapping.objects.filter(user_id=request.user.id).first().related_to
+            manager = (
+                UsersMapping.objects.filter(
+                    user_id=request.user.id).first().related_to
+            )
             if manager is None:
-                return HttpResponseForbidden("Ви не привʼязані до територіального менеджера. Зверніться до адміністратора.")
+                return HttpResponseForbidden(
+                    "Ви не привʼязані до територіального менеджера. Зверніться до адміністратора."
+                )
             else:
-                regional = get_rm_by_tm(f"{manager.last_name} {manager.first_name}")
+                regional = get_rm_by_tm(
+                    f"{manager.last_name} {manager.first_name}")
                 all_regionals = [regional]
-                locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+                locations = Location.objects.filter(
+                    regional_manager=all_regionals[0]
+                ).all()
         except:
-            regional = get_rm_by_tm(f"{request.user.last_name} {request.user.first_name}")
+            regional = get_rm_by_tm(
+                f"{request.user.last_name} {request.user.first_name}"
+            )
             all_regionals = [regional]
-            locations = Location.objects.filter(regional_manager=all_regionals[0]).all()
+            locations = Location.objects.filter(
+                regional_manager=all_regionals[0]).all()
     elif get_user_role(request.user) == "tutor":
         regional = get_rm_by_tutor_english(
             f"{request.user.last_name} {request.user.first_name}"
@@ -2488,7 +2071,7 @@ def english_teacher_new(request):
                 teachers_report[report.teacher] = {}
                 teachers_report[report.teacher]["enrolled"] = report.enrolled_mc
                 teachers_report[report.teacher]["attended"] = report.attended_mc
-                teachers_report[report.teacher]["payments"] =report.payment
+                teachers_report[report.teacher]["payments"] = report.payment
                 teachers_report[report.teacher][
                     "regional_manager"
                 ] = report.regional_manager
@@ -2552,16 +2135,14 @@ def english_teacher_new(request):
         "username": request.user.username,
         "report_scales": possible_report_scales,
         "user_group": get_user_role(request.user),
-        # 'reports_by_locations': reports_by_locations,
         "managers": managers,
         "totals_rm": totals_rm,
         "totals_tm": totals_tm,
         "reports_by_teacher": teachers_report,
-        # 'totals_km': total_kms,
-        # 'totals': totals,
         "user_role": get_user_role(request.user),
     }
-    html_template = loader.get_template("home/report_english_teacher_admin.html")
+    html_template = loader.get_template(
+        "home/report_english_teacher_admin.html")
     return HttpResponse(html_template.render(context, request))
 
 
@@ -2573,7 +2154,7 @@ def issues_new(request):
         issue_status__in=["assigned", "to_check", "to_be_assigned"],
         issue_priority="medium_new",
     ).all()
-    user_name = f'{request.user.last_name} {request.user.first_name}'
+    user_name = f"{request.user.last_name} {request.user.first_name}"
     ready_no_amo_id = {}
     to_be_assigned_amo_id = {}
     for issue in no_amo_id:
@@ -2617,13 +2198,16 @@ def issues_new(request):
                 continue
             rm_name = get_rm_by_tm(tm_name)
             user_full_name = f"{request.user.last_name} {request.user.first_name}"
-            if (user_full_name == tm_name and user_role == "territorial_manager") or (user_full_name == rm_name and user_role=="regional"):
+            if (user_full_name == tm_name and user_role == "territorial_manager") or (
+                user_full_name == rm_name and user_role == "regional"
+            ):
                 ready_no_amo_id[issue_id] = {
                     "header": header,
                     "description": description,
                 }
             if user_role == "territorial_manager_km":
-                mapping = UsersMapping.objects.filter(user_id=request.user.id).first()
+                mapping = UsersMapping.objects.filter(
+                    user_id=request.user.id).first()
                 if mapping:
                     related_tm = mapping.related_to
                     related_tm_name = f"{related_tm.last_name} {related_tm.first_name}"
@@ -2632,7 +2216,6 @@ def issues_new(request):
                             "header": header,
                             "description": description,
                         }
-
 
     issues_to_check = Issue.objects.filter(
         issue_type="to_check:no_amo_id", issue_priority="medium_new"
@@ -2732,10 +2315,14 @@ def issues_new(request):
                 }
             else:
                 if user_role == "territorial_manager_km":
-                    mapping = UsersMapping.objects.filter(user_id=request.user.id).first()
+                    mapping = UsersMapping.objects.filter(
+                        user_id=request.user.id
+                    ).first()
                     if mapping:
                         related_tm = mapping.related_to
-                        related_tm_name = f"{related_tm.last_name} {related_tm.first_name}"
+                        related_tm_name = (
+                            f"{related_tm.last_name} {related_tm.first_name}"
+                        )
                         if related_tm_name == tm_name:
                             too_small_payments_issues_ready[issue_id] = {
                                 "header": header,
@@ -2858,10 +2445,14 @@ def issues_new(request):
                 }
             else:
                 if user_role == "territorial_manager_km":
-                    mapping = UsersMapping.objects.filter(user_id=request.user.id).first()
+                    mapping = UsersMapping.objects.filter(
+                        user_id=request.user.id
+                    ).first()
                     if mapping:
                         related_tm = mapping.related_to
-                        related_tm_name = f"{related_tm.last_name} {related_tm.first_name}"
+                        related_tm_name = (
+                            f"{related_tm.last_name} {related_tm.first_name}"
+                        )
                         if related_tm_name == tm_name:
                             no_cm_in_group_ready[issue_id] = {
                                 "header": header,
@@ -2964,10 +2555,14 @@ def issues_new(request):
                 }
             else:
                 if user_role == "territorial_manager_km":
-                    mapping = UsersMapping.objects.filter(user_id=request.user.id).first()
+                    mapping = UsersMapping.objects.filter(
+                        user_id=request.user.id
+                    ).first()
                     if mapping:
                         related_tm = mapping.related_to
-                        related_tm_name = f"{related_tm.last_name} {related_tm.first_name}"
+                        related_tm_name = (
+                            f"{related_tm.last_name} {related_tm.first_name}"
+                        )
                         if related_tm_name == tm_name:
                             no_location_in_goup_ready[issue_id] = {
                                 "header": header,
@@ -3055,7 +2650,8 @@ def issues_tutors(request):
         ):
             tutor_name = role.split(":")[1]
             location = res_description[3][9:]
-            location_obj = Location.objects.filter(lms_location_name=location).first()
+            location_obj = Location.objects.filter(
+                lms_location_name=location).first()
             if location_obj:
                 rm_name = location_obj.regional_manager
                 tm_name = location_obj.territorial_manager
@@ -3152,13 +2748,16 @@ def issues_tutors(request):
         "teacher_not_found_to_check": teacher_not_found_to_check_ready,
         "teacher_not_found_to_check_amount": len(teacher_not_found_to_check_ready),
         "teacher_not_found_to_check_admin_tm": teacher_not_found_to_check_ready_admin_tm,
-        "teacher_not_found_to_check_admin_tm_amount": len(teacher_not_found_to_check_ready_admin_tm),
+        "teacher_not_found_to_check_admin_tm_amount": len(
+            teacher_not_found_to_check_ready_admin_tm
+        ),
     }
     return HttpResponse(html_template.render(context, request))
 
 
 def get_issue_type(issue_type_part):
-    group_issues = ["no_teacher_in_group", "no_cm_in_group", "no_location_in_group"]
+    group_issues = ["no_teacher_in_group",
+                    "no_cm_in_group", "no_location_in_group"]
     payment_issues = ["student_not_found", "too_small_payment"]
     student_issues = ["no_amo_id"]
     if issue_type_part in group_issues:
@@ -3172,7 +2771,7 @@ def get_issue_type(issue_type_part):
 def get_tm_from_issue_data(data):
     tm_name = ""
     result = data.find("ТМ:")
-    new_data = data[result+4:]
+    new_data = data[result + 4:]
     for char in new_data:
         if char != ";":
             tm_name += char
@@ -3184,7 +2783,7 @@ def get_tm_from_issue_data(data):
 def get_tutor_from_issue_data(data):
     tutor_name = ""
     result = data.find("Т`ютор")
-    new_data = data[result+8:]
+    new_data = data[result + 8:]
     for char in new_data:
         if char != ";":
             tutor_name += char
@@ -3196,15 +2795,21 @@ def get_tutor_from_issue_data(data):
 @login_required(login_url="/login/")
 def revert_issue(request, issue_id):
     tutors_issues = ["group_issue:no_teacher_in_group"]
-    tm_issues = ["group_issue:no_cm_in_group", "group_issue:no_location_in_group", "payment_issue:student_not_found", "payment_issue:too_small_payment", "student_issue:no_amo_id"]
+    tm_issues = [
+        "group_issue:no_cm_in_group",
+        "group_issue:no_location_in_group",
+        "payment_issue:student_not_found",
+        "payment_issue:too_small_payment",
+        "student_issue:no_amo_id",
+    ]
     html_template = loader.get_template("home/revert_issue.html")
     issue: Issue = Issue.objects.filter(id=issue_id).first()
     issue_type = get_issue_type(issue.issue_type.split(":")[1])
     data = issue.issue_data
     user_role = get_user_role(request.user)
     if user_role == "admin":
-            name = get_tm_from_issue_data(data)
-            revert_role = "territorial_manager"
+        name = get_tm_from_issue_data(data)
+        revert_role = "territorial_manager"
     else:
         if issue_type in tutors_issues:
             name = get_tutor_from_issue_data(data)
@@ -3267,7 +2872,8 @@ def add_teacher_for_group(request, issue_id):
             group = GlobalGroup.objects.filter(lms_id=group_lms_id).first()
             group.teacher = teacher
             group.save()
-            students = StudentReport.objects.filter(student_mk_group_id=group.id).all()
+            students = StudentReport.objects.filter(
+                student_mk_group_id=group.id).all()
             for student in students:
                 student.teacher = teacher
                 student.save()
@@ -3316,8 +2922,10 @@ def add_student_id(request, issue_id):
             start_date = issue.report_start
             end_date = issue.report_end
             student = StudentReport.objects.filter(
-                start_date=datetime.datetime.strptime(start_date, "%Y-%m-%d").date(),
-                end_date=datetime.datetime.strptime(end_date, "%Y-%m-%d").date(),
+                start_date=datetime.datetime.strptime(
+                    start_date, "%Y-%m-%d").date(),
+                end_date=datetime.datetime.strptime(
+                    end_date, "%Y-%m-%d").date(),
                 student_first_name=student_name.split()[0],
                 student_last_name=student_name.split()[1],
                 student_lms_id=issue.issue_description.split(";")[0],
@@ -3354,7 +2962,8 @@ def add_student_id(request, issue_id):
                     start_date=datetime.datetime.strptime(
                         start_date, "%Y-%m-%d"
                     ).date(),
-                    end_date=datetime.datetime.strptime(end_date, "%Y-%m-%d").date(),
+                    end_date=datetime.datetime.strptime(
+                        end_date, "%Y-%m-%d").date(),
                 )
                 report.save()
                 issue.issue_status = "resolved"
@@ -3442,7 +3051,8 @@ def add_student_id(request, issue_id):
                     start_date=datetime.datetime.strptime(
                         start_date, "%Y-%m-%d"
                     ).date(),
-                    end_date=datetime.datetime.strptime(end_date, "%Y-%m-%d").date(),
+                    end_date=datetime.datetime.strptime(
+                        end_date, "%Y-%m-%d").date(),
                 )
                 report.save()
                 issue.issue_status = "resolved"
@@ -3490,11 +3100,13 @@ def add_location(request, issue_id):
         form = AddLocationForm(request.POST)
         if form.is_valid():
             location = form.cleaned_data["location"]
-            location = Location.objects.filter(lms_location_name=location).first()
+            location = Location.objects.filter(
+                lms_location_name=location).first()
             group = GlobalGroup.objects.filter(lms_id=lms_id).first()
             group.location = location
             group.save()
-            students = StudentReport.objects.filter(student_mk_group_id=group.id).all()
+            students = StudentReport.objects.filter(
+                student_mk_group_id=group.id).all()
             for student in students:
                 student.client_manager = location.client_manager
                 student.territorial_manager = location.territorial_manager
@@ -3793,9 +3405,11 @@ def close_issue_reason_new(request, issue_id):
             reason = form.cleaned_data["reason"]
             if user_role == "territorial_manager_km" or user_role == "tutor":
                 if user_role == "territorial_manager_km":
-                    user_name = f'{request.user.last_name} {request.user.first_name}'
+                    user_name = f"{request.user.last_name} {request.user.first_name}"
                 else:
-                    _, user_name = get_rm_tm_by_tutor(f'{request.user.last_name} {request.user.first_name}')
+                    _, user_name = get_rm_tm_by_tutor(
+                        f"{request.user.last_name} {request.user.first_name}"
+                    )
                 issue.issue_roles = f"territorial_manager:{user_name}"
             elif user_role == "territorial_manager" or user_role == "regional":
                 issue.issue_roles = "admin"
@@ -3850,7 +3464,7 @@ def create_student_amo_ref_new(request, issue_id):
             entered_amo_id = form.cleaned_data["amo_id"]
             try:
                 real_amo_id = get_student_amo_id(lms_id)
-            except: 
+            except:
                 real_amo_id = entered_amo_id
             if str(entered_amo_id) != str(real_amo_id):
                 form = CreateAmoRef()
@@ -3952,944 +3566,13 @@ def resolve_no_amo_issue_without_actions_new(request, issue_id):
     lms_id = issue.issue_description.split(";")[0]
     issue.issue_status = "resolved_without_actions"
     issue.save()
-    student = StudentReport.objects.filter(student_lms_id=lms_id, enrolled_mc=1).all()
+    student = StudentReport.objects.filter(
+        student_lms_id=lms_id, enrolled_mc=1).all()
     for rep in student:
         if not rep.amo_id:
             rep.amo_id = 0
             rep.save()
     return redirect(issues_new)
-
-
-# @login_required(login_url="/login/")
-# def programming(request):
-#     month_report = None
-#     totals = {}
-#     rm_totals = {}
-#     ukraine_total = {
-#         "Ukraine": {
-#             "total": 0,
-#             "attended": 0,
-#             "payments": 0}}
-#
-#     with open(f"{base_path}/../report_scales.txt", "r", encoding="UTF-8") as report_scales_fileobj:
-#         scales = report_scales_fileobj.readlines()
-#     scales_dict = {}
-#     for i in range(len(scales)):
-#         scales[i] = scales[i].replace("\n", "").replace("_", " - ")
-#         month = scales[i].split(":")[0]
-#         dates = scales[i].split(":")[1]
-#         if month not in scales_dict:
-#             scales_dict[month] = [dates]
-#         else:
-#             scales_dict[month].append(dates)
-#     possible_report_scales = []
-#     for key, value in scales_dict.items():
-#         possible_report_scales.append(key)
-#         for val in value:
-#             possible_report_scales.append(val)
-#     if request.method == 'POST':
-#         form = ReportDateForm(request.POST)
-#         if form.is_valid():
-#             try:
-#                 report_start, report_end = form.cleaned_data["report_scale"].split(" - ")
-#             except ValueError:
-#                 month_report = form.cleaned_data["report_scale"]
-#         else:
-#             report_start, report_end = possible_report_scales[-1].split(" - ")
-#     else:
-#         report_start, report_end = possible_report_scales[-1].split(" - ")
-#     if not month_report:
-#         report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
-#         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
-#         reports = Report.objects.filter(start_date__exact=report_start).filter(
-#             end_date__exact=report_end).all().order_by("client_manager")
-#         report_date_default = f"{report_start} - {report_end}"
-#     else:
-#         scale_end = max(set(Report.objects.all().values_list('end_date', flat=True)))
-#         report_scales = scales_dict[month_report]
-#         scale_start = report_scales[0].split(" - ")[0]
-#         scale_start = datetime.datetime.strptime(scale_start, "%Y-%m-%d").date()
-#         reports = Report.objects.filter(start_date__exact=scale_start).filter(end_date__exact=scale_end).all().order_by(
-#             "client_manager")
-#         report_date_default = f'{scale_start} - {scale_end}'
-#     if not is_member(request.user, "territorial_manager"):
-#         regionals = []
-#         territorial_managers_by_regionals = {}
-#         if is_member(request.user, "admin"):
-#             for report in reports:
-#                 if not (report.regional_manager in regionals):
-#                     regionals.append(report.regional_manager)
-#         elif is_member(request.user, "regional"):
-#             full_name = f'{request.user.last_name} {request.user.first_name}'
-#             regionals.append(full_name)
-#         for report in reports:
-#             if not (report.territorial_manager in territorial_managers_by_regionals):
-#                 territorial_managers_by_regionals[report.territorial_manager] = report.regional_manager
-#
-#             report.conversion = round(float(report.conversion), 2)
-#             if report.business == "programming":
-#                 if not (report.territorial_manager in totals):
-#                     totals[report.territorial_manager] = {
-#                         "total": report.total,
-#                         "attended": report.attended,
-#                         "payments": report.payments
-#                     }
-#                 else:
-#                     totals[report.territorial_manager]["total"] += report.total
-#                     totals[report.territorial_manager]["attended"] += report.attended
-#                     totals[report.territorial_manager]["payments"] += report.payments
-#                 if not (report.regional_manager in rm_totals):
-#                     rm_totals[report.regional_manager] = {
-#                         "total": report.total,
-#                         "attended": report.attended,
-#                         "payments": report.payments
-#                     }
-#                 else:
-#                     rm_totals[report.regional_manager]["total"] += report.total
-#                     rm_totals[report.regional_manager]["attended"] += report.attended
-#                     rm_totals[report.regional_manager]["payments"] += report.payments
-#                 if is_member(request.user, "admin"):
-#                     ukraine_total["Ukraine"]["total"] += report.total
-#                     ukraine_total["Ukraine"]["attended"] += report.attended
-#                     ukraine_total["Ukraine"]["payments"] += report.payments
-#         for tm in totals:
-#             if totals[tm]["payments"] == 0 and totals[tm]["attended"] == 0:
-#                 totals[tm]["conversion"] = 0
-#             else:
-#                 try:
-#                     totals[tm]["conversion"] = round((totals[tm]["payments"] / totals[tm]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     totals[tm]["conversion"] = 100
-#         for regman in rm_totals:
-#             if rm_totals[regman]["payments"] == 0 and rm_totals[regman]["attended"] == 0:
-#                 rm_totals[regman]["conversion"] = 0
-#             else:
-#                 try:
-#                     rm_totals[regman]["conversion"] = round(
-#                         (rm_totals[regman]["payments"] / rm_totals[regman]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     rm_totals[regman]["conversion"] = 100
-#         if is_member(request.user, "admin"):
-#             for country in ukraine_total:
-#                 if ukraine_total[country]["payments"] == 0 and ukraine_total[country]["attended"] == 0:
-#                     ukraine_total[country]["conversion"] = 0
-#                 else:
-#                     try:
-#                         ukraine_total[country]["conversion"] = round(
-#                             (ukraine_total[country]["payments"] / ukraine_total[country]["attended"]) * 100, 2)
-#                     except ZeroDivisionError:
-#                         ukraine_total[country]["conversion"] = 100
-#         reports_by_km = {}
-#         for report in reports:
-#             if report.business != "programming":
-#                 continue
-#             if report.client_manager not in reports_by_km:
-#                 reports_by_km[report.client_manager] = {
-#                     "total": report.total,
-#                     "attended": report.attended,
-#                     "payments": report.payments,
-#                     "territorial_manager": report.territorial_manager,
-#                     "regional_manager": report.regional_manager,
-#                     "business": "programming"
-#                 }
-#             else:
-#                 reports_by_km[report.client_manager]["total"] += report.total
-#                 reports_by_km[report.client_manager]["attended"] += report.attended
-#                 reports_by_km[report.client_manager]["payments"] += report.payments
-#         for rep in reports_by_km:
-#             if reports_by_km[rep]["payments"] == 0 and reports_by_km[rep]["attended"] == 0:
-#                 reports_by_km[rep]["conversion"] = 0
-#             else:
-#                 try:
-#                     reports_by_km[rep]["conversion"] = round(
-#                         (reports_by_km[rep]["payments"] / reports_by_km[rep]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     reports_by_km[rep]["conversion"] = 100
-#
-#         context = {
-#             'segment': 'programming',
-#             "regionals": regionals,
-#             "tms": territorial_managers_by_regionals,
-#             "reports": reports,
-#             "report_date_default": report_date_default,
-#             "username": request.user.username,
-#             "report_scales": possible_report_scales,
-#             "tm_totals": totals,
-#             "rm_totals": rm_totals,
-#             "ukraine_total": ukraine_total,
-#             "reports_by_km": reports_by_km,
-#             "user_group": get_user_role(request.user)
-#         }
-#         html_template = loader.get_template('home/report_programming_admin.html')
-#     else:
-#         tm_reports = []
-#         tm = f"{request.user.last_name} {request.user.first_name}"
-#         for report in reports:
-#             if report.territorial_manager == tm:
-#                 report.conversion = round(float(report.conversion), 2)
-#                 tm_reports.append(report)
-#                 if report.business == "programming":
-#                     if not (report.territorial_manager in totals):
-#                         totals[report.territorial_manager] = {
-#                             "total": report.total,
-#                             "attended": report.attended,
-#                             "payments": report.payments
-#                         }
-#                     else:
-#                         totals[report.territorial_manager]["total"] += report.total
-#                         totals[report.territorial_manager]["attended"] += report.attended
-#                         totals[report.territorial_manager]["payments"] += report.payments
-#         for tm in totals:
-#             if totals[tm]["payments"] == 0 and totals[tm]["attended"] == 0:
-#                 totals[tm]["conversion"] = 0
-#             else:
-#                 try:
-#                     totals[tm]["conversion"] = round((totals[tm]["payments"] / totals[tm]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     totals[tm]["conversion"] = 100
-#         reports_by_km = {}
-#         for report in reports:
-#             if report.territorial_manager != tm:
-#                 continue
-#             if report.business != "programming":
-#                 continue
-#             if report.client_manager not in reports_by_km:
-#                 reports_by_km[report.client_manager] = {
-#                     "total": report.total,
-#                     "attended": report.attended,
-#                     "payments": report.payments,
-#                     "territorial_manager": report.territorial_manager,
-#                     "regional_manager": report.regional_manager,
-#                     "business": "programming"
-#                 }
-#             else:
-#                 reports_by_km[report.client_manager]["total"] += report.total
-#                 reports_by_km[report.client_manager]["attended"] += report.attended
-#                 reports_by_km[report.client_manager]["payments"] += report.payments
-#         for rep in reports_by_km:
-#             if reports_by_km[rep]["payments"] == 0 and reports_by_km[rep]["attended"] == 0:
-#                 reports_by_km[rep]["conversion"] = 0
-#             else:
-#                 try:
-#                     reports_by_km[rep]["conversion"] = round(
-#                         (reports_by_km[rep]["payments"] / reports_by_km[rep]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     reports_by_km[rep]["conversion"] = 100
-#         context = {
-#             'segment': 'programming',
-#             "reports": tm_reports,
-#             "report_date_default": report_date_default,
-#             "username": request.user.username,
-#             "report_scales": possible_report_scales,
-#             "tm": tm,
-#             "tm_totals": totals,
-#             "reports_by_km": reports_by_km,
-#             "user_group": get_user_role(request.user)
-#         }
-#         html_template = loader.get_template('home/report_programming_tm.html')
-#     return HttpResponse(html_template.render(context, request))
-
-
-# @login_required(login_url="/login/")
-# def english(request):
-#     month_report = None
-#     totals = {}
-#     rm_totals = {}
-#     ukraine_total = {
-#         "Ukraine": {
-#             "total": 0,
-#             "attended": 0,
-#             "payments": 0}}
-#     with open(f"{base_path}/../report_scales.txt", "r", encoding="UTF-8") as report_scales_fileobj:
-#         scales = report_scales_fileobj.readlines()
-#     scales_dict = {}
-#     for i in range(len(scales)):
-#         scales[i] = scales[i].replace("\n", "").replace("_", " - ")
-#         month = scales[i].split(":")[0]
-#         dates = scales[i].split(":")[1]
-#         if month not in scales_dict:
-#             scales_dict[month] = [dates]
-#         else:
-#             scales_dict[month].append(dates)
-#     possible_report_scales = []
-#     for key, value in scales_dict.items():
-#         possible_report_scales.append(key)
-#         for val in value:
-#             possible_report_scales.append(val)
-#     if request.method == 'POST':
-#         form = ReportDateForm(request.POST)
-#         if form.is_valid():
-#             try:
-#                 report_start, report_end = form.cleaned_data["report_scale"].split(" - ")
-#             except ValueError:
-#                 month_report = form.cleaned_data["report_scale"]
-#         else:
-#             report_start, report_end = possible_report_scales[-1].split(" - ")
-#     else:
-#         report_start, report_end = possible_report_scales[-1].split(" - ")
-#     if not month_report:
-#         report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
-#         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
-#         reports = Report.objects.filter(start_date__exact=report_start).filter(
-#             end_date__exact=report_end).all().order_by("client_manager")
-#         report_date_default = f"{report_start} - {report_end}"
-#     else:
-#         report_scales = scales_dict[month_report]
-#         scale_start = report_scales[0].split(" - ")[0]
-#         scale_end = report_scales[-1].split(" - ")[1]
-#         scale_start = datetime.datetime.strptime(scale_start, "%Y-%m-%d").date()
-#         scale_end = datetime.datetime.strptime(scale_end, "%Y-%m-%d").date()
-#         reports = Report.objects.filter(start_date__exact=scale_start).filter(end_date__exact=scale_end).all().order_by(
-#             "client_manager")
-#         report_date_default = f'{scale_start} - {scale_end}'
-#     if not is_member(request.user, "territorial_manager"):
-#         regionals = []
-#         territorial_managers_by_regionals = {}
-#         if is_member(request.user, "admin"):
-#             for report in reports:
-#                 if not (report.regional_manager in regionals):
-#                     regionals.append(report.regional_manager)
-#         elif is_member(request.user, "regional"):
-#             full_name = f'{request.user.last_name} {request.user.first_name}'
-#             regionals.append(full_name)
-#         for report in reports:
-#             if not (report.territorial_manager in territorial_managers_by_regionals):
-#                 territorial_managers_by_regionals[report.territorial_manager] = report.regional_manager
-#
-#             report.conversion = round(float(report.conversion), 2)
-#             if report.business == "english":
-#                 if not (report.territorial_manager in totals):
-#                     totals[report.territorial_manager] = {
-#                         "total": report.total,
-#                         "attended": report.attended,
-#                         "payments": report.payments
-#                     }
-#                 else:
-#                     totals[report.territorial_manager]["total"] += report.total
-#                     totals[report.territorial_manager]["attended"] += report.attended
-#                     totals[report.territorial_manager]["payments"] += report.payments
-#                 if not (report.regional_manager in rm_totals):
-#                     rm_totals[report.regional_manager] = {
-#                         "total": report.total,
-#                         "attended": report.attended,
-#                         "payments": report.payments
-#                     }
-#                 else:
-#                     rm_totals[report.regional_manager]["total"] += report.total
-#                     rm_totals[report.regional_manager]["attended"] += report.attended
-#                     rm_totals[report.regional_manager]["payments"] += report.payments
-#                 if is_member(request.user, "admin"):
-#                     ukraine_total["Ukraine"]["total"] += report.total
-#                     ukraine_total["Ukraine"]["attended"] += report.attended
-#                     ukraine_total["Ukraine"]["payments"] += report.payments
-#         for tm in totals:
-#             if totals[tm]["payments"] == 0 and totals[tm]["attended"] == 0:
-#                 totals[tm]["conversion"] = 0
-#             else:
-#                 try:
-#                     totals[tm]["conversion"] = round((totals[tm]["payments"] / totals[tm]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     totals[tm]["conversion"] = 100
-#         for regman in rm_totals:
-#             if rm_totals[regman]["payments"] == 0 and rm_totals[regman]["attended"] == 0:
-#                 rm_totals[regman]["conversion"] = 0
-#             else:
-#                 try:
-#                     rm_totals[regman]["conversion"] = round(
-#                         (rm_totals[regman]["payments"] / rm_totals[regman]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     rm_totals[regman]["conversion"] = 100
-#         if is_member(request.user, "admin"):
-#             for country in ukraine_total:
-#                 if ukraine_total[country]["payments"] == 0 and ukraine_total[country]["attended"] == 0:
-#                     ukraine_total[country]["conversion"] = 0
-#                 else:
-#                     try:
-#                         ukraine_total[country]["conversion"] = round(
-#                             (ukraine_total[country]["payments"] / ukraine_total[country]["attended"]) * 100, 2)
-#                     except ZeroDivisionError:
-#                         ukraine_total[country]["conversion"] = 100
-#         reports_by_km = {}
-#         for report in reports:
-#             if report.business != "english":
-#                 continue
-#             if report.client_manager not in reports_by_km:
-#                 reports_by_km[report.client_manager] = {
-#                     "total": report.total,
-#                     "attended": report.attended,
-#                     "payments": report.payments,
-#                     "territorial_manager": report.territorial_manager,
-#                     "regional_manager": report.regional_manager,
-#                     "business": "english"
-#                 }
-#             else:
-#                 reports_by_km[report.client_manager]["total"] += report.total
-#                 reports_by_km[report.client_manager]["attended"] += report.attended
-#                 reports_by_km[report.client_manager]["payments"] += report.payments
-#         for rep in reports_by_km:
-#             if reports_by_km[rep]["payments"] == 0 and reports_by_km[rep]["attended"] == 0:
-#                 reports_by_km[rep]["conversion"] = 0
-#             else:
-#                 try:
-#                     reports_by_km[rep]["conversion"] = round(
-#                         (reports_by_km[rep]["payments"] / reports_by_km[rep]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     reports_by_km[rep]["conversion"] = 100
-#
-#         context = {
-#             'segment': 'english',
-#             "regionals": regionals,
-#             "tms": territorial_managers_by_regionals,
-#             "reports": reports,
-#             "report_date_default": report_date_default,
-#             "username": request.user.username,
-#             "report_scales": possible_report_scales,
-#             "tm_totals": totals,
-#             "rm_totals": rm_totals,
-#             "ukraine_total": ukraine_total,
-#             "reports_by_km": reports_by_km,
-#             "user_group": get_user_role(request.user)
-#         }
-#         html_template = loader.get_template('home/report_english_admin.html')
-#     else:
-#         tm_reports = []
-#         tm = f"{request.user.last_name} {request.user.first_name}"
-#         for report in reports:
-#             if report.territorial_manager == tm:
-#                 report.conversion = round(float(report.conversion), 2)
-#                 tm_reports.append(report)
-#                 if report.business == "english":
-#                     if not (report.territorial_manager in totals):
-#                         totals[report.territorial_manager] = {
-#                             "total": report.total,
-#                             "attended": report.attended,
-#                             "payments": report.payments
-#                         }
-#                     else:
-#                         totals[report.territorial_manager]["total"] += report.total
-#                         totals[report.territorial_manager]["attended"] += report.attended
-#                         totals[report.territorial_manager]["payments"] += report.payments
-#         for tm in totals:
-#             if totals[tm]["payments"] == 0 and totals[tm]["attended"] == 0:
-#                 totals[tm]["conversion"] = 0
-#             else:
-#                 try:
-#                     totals[tm]["conversion"] = round((totals[tm]["payments"] / totals[tm]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     totals[tm]["conversion"] = 100
-#         reports_by_km = {}
-#         for report in reports:
-#             if report.territorial_manager != tm:
-#                 continue
-#             if report.business != "english":
-#                 continue
-#             if report.client_manager not in reports_by_km:
-#                 reports_by_km[report.client_manager] = {
-#                     "total": report.total,
-#                     "attended": report.attended,
-#                     "payments": report.payments,
-#                     "territorial_manager": report.territorial_manager,
-#                     "regional_manager": report.regional_manager,
-#                     "business": "english"
-#                 }
-#             else:
-#                 reports_by_km[report.client_manager]["total"] += report.total
-#                 reports_by_km[report.client_manager]["attended"] += report.attended
-#                 reports_by_km[report.client_manager]["payments"] += report.payments
-#         for rep in reports_by_km:
-#             if reports_by_km[rep]["payments"] == 0 and reports_by_km[rep]["attended"] == 0:
-#                 reports_by_km[rep]["conversion"] = 0
-#             else:
-#                 try:
-#                     reports_by_km[rep]["conversion"] = round(
-#                         (reports_by_km[rep]["payments"] / reports_by_km[rep]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     reports_by_km[rep]["conversion"] = 100
-#         context = {
-#             'segment': 'english',
-#             "reports": tm_reports,
-#             "report_date_default": report_date_default,
-#             "username": request.user.username,
-#             "report_scales": possible_report_scales,
-#             "tm": tm,
-#             "tm_totals": totals,
-#             "reports_by_km": reports_by_km,
-#             "user_group": get_user_role(request.user)
-#         }
-#         html_template = loader.get_template('home/report_english_tm.html')
-#     return HttpResponse(html_template.render(context, request))
-
-
-# @login_required(login_url="/login/")
-# def tutors_programming(request):
-#     # reports = Report.objects.all()
-#     # for report in reports:
-#     #     location = report.location_name
-#     #     location_tutor = Location.objects.filter(lms_location_name=location).first().tutor
-#     #     report.tutor = location_tutor
-#     #     report.save()
-#     month_report = None
-#     totals = {}
-#     rm_totals = {}
-#     ukraine_total = {
-#         "Ukraine": {
-#             "total": 0,
-#             "attended": 0,
-#             "payments": 0}}
-#     with open(f"{base_path}/../report_scales.txt", "r", encoding="UTF-8") as report_scales_fileobj:
-#         scales = report_scales_fileobj.readlines()
-#     scales_dict = {}
-#     for i in range(len(scales)):
-#         scales[i] = scales[i].replace("\n", "").replace("_", " - ")
-#         month = scales[i].split(":")[0]
-#         dates = scales[i].split(":")[1]
-#         if month not in scales_dict:
-#             scales_dict[month] = [dates]
-#         else:
-#             scales_dict[month].append(dates)
-#     possible_report_scales = []
-#     for key, value in scales_dict.items():
-#         possible_report_scales.append(key)
-#         for val in value:
-#             possible_report_scales.append(val)
-#     if request.method == 'POST':
-#         form = ReportDateForm(request.POST)
-#         if form.is_valid():
-#             try:
-#                 report_start, report_end = form.cleaned_data["report_scale"].split(" - ")
-#             except ValueError:
-#                 month_report = form.cleaned_data["report_scale"]
-#         else:
-#             report_start, report_end = possible_report_scales[-1].split(" - ")
-#     else:
-#         report_start, report_end = possible_report_scales[-1].split(" - ")
-#     if not month_report:
-#         report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
-#         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
-#         reports = Report.objects.filter(start_date__exact=report_start).filter(
-#             end_date__exact=report_end).all().order_by("client_manager")
-#         report_date_default = f"{report_start} - {report_end}"
-#     else:
-#         report_scales = scales_dict[month_report]
-#         scale_start = report_scales[0].split(" - ")[0]
-#         scale_end = report_scales[-1].split(" - ")[1]
-#         scale_start = datetime.datetime.strptime(scale_start, "%Y-%m-%d").date()
-#         scale_end = datetime.datetime.strptime(scale_end, "%Y-%m-%d").date()
-#         reports = Report.objects.filter(start_date__exact=scale_start).filter(end_date__exact=scale_end).all().order_by(
-#             "tutor")
-#         report_date_default = f'{scale_start} - {scale_end}'
-#     if not is_member(request.user, "territorial_manager"):
-#         regionals = []
-#         territorial_managers_by_regionals = {}
-#         if is_member(request.user, "admin"):
-#             for report in reports:
-#                 if not (report.regional_manager in regionals):
-#                     regionals.append(report.regional_manager)
-#         elif is_member(request.user, "regional"):
-#             full_name = f'{request.user.last_name} {request.user.first_name}'
-#             regionals.append(full_name)
-#         for report in reports:
-#             if not (report.territorial_manager in territorial_managers_by_regionals):
-#                 territorial_managers_by_regionals[report.territorial_manager] = report.regional_manager
-#
-#             report.conversion = round(float(report.conversion), 2)
-#             if report.business == "programming":
-#                 if not (report.territorial_manager in totals):
-#                     totals[report.territorial_manager] = {
-#                         "total": report.total,
-#                         "attended": report.attended,
-#                         "payments": report.payments
-#                     }
-#                 else:
-#                     totals[report.territorial_manager]["total"] += report.total
-#                     totals[report.territorial_manager]["attended"] += report.attended
-#                     totals[report.territorial_manager]["payments"] += report.payments
-#                 if not (report.regional_manager in rm_totals):
-#                     rm_totals[report.regional_manager] = {
-#                         "total": report.total,
-#                         "attended": report.attended,
-#                         "payments": report.payments
-#                     }
-#                 else:
-#                     rm_totals[report.regional_manager]["total"] += report.total
-#                     rm_totals[report.regional_manager]["attended"] += report.attended
-#                     rm_totals[report.regional_manager]["payments"] += report.payments
-#                 if is_member(request.user, "admin"):
-#                     ukraine_total["Ukraine"]["total"] += report.total
-#                     ukraine_total["Ukraine"]["attended"] += report.attended
-#                     ukraine_total["Ukraine"]["payments"] += report.payments
-#         for tm in totals:
-#             if totals[tm]["payments"] == 0 and totals[tm]["attended"] == 0:
-#                 totals[tm]["conversion"] = 0
-#             else:
-#                 try:
-#                     totals[tm]["conversion"] = round((totals[tm]["payments"] / totals[tm]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     totals[tm]["conversion"] = 100
-#         for regman in rm_totals:
-#             if rm_totals[regman]["payments"] == 0 and rm_totals[regman]["attended"] == 0:
-#                 rm_totals[regman]["conversion"] = 0
-#             else:
-#                 try:
-#                     rm_totals[regman]["conversion"] = round(
-#                         (rm_totals[regman]["payments"] / rm_totals[regman]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     rm_totals[regman]["conversion"] = 100
-#         if is_member(request.user, "admin"):
-#             for country in ukraine_total:
-#                 if ukraine_total[country]["payments"] == 0 and ukraine_total[country]["attended"] == 0:
-#                     ukraine_total[country]["conversion"] = 0
-#                 else:
-#                     try:
-#                         ukraine_total[country]["conversion"] = round(
-#                             (ukraine_total[country]["payments"] / ukraine_total[country]["attended"]) * 100, 2)
-#                     except ZeroDivisionError:
-#                         ukraine_total[country]["conversion"] = 100
-#         reports_by_tutor = {}
-#         for report in reports:
-#             if report.business != "programming":
-#                 continue
-#             if report.tutor not in reports_by_tutor:
-#                 reports_by_tutor[report.tutor] = {
-#                     "total": report.total,
-#                     "attended": report.attended,
-#                     "payments": report.payments,
-#                     "territorial_manager": report.territorial_manager,
-#                     "regional_manager": report.regional_manager,
-#                     "business": "programming"
-#                 }
-#             else:
-#                 reports_by_tutor[report.tutor]["total"] += report.total
-#                 reports_by_tutor[report.tutor]["attended"] += report.attended
-#                 reports_by_tutor[report.tutor]["payments"] += report.payments
-#         for rep in reports_by_tutor:
-#             if reports_by_tutor[rep]["payments"] == 0 and reports_by_tutor[rep]["attended"] == 0:
-#                 reports_by_tutor[rep]["conversion"] = 0
-#             else:
-#                 try:
-#                     reports_by_tutor[rep]["conversion"] = round(
-#                         (reports_by_tutor[rep]["payments"] / reports_by_tutor[rep]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     reports_by_tutor[rep]["conversion"] = 100
-#
-#         context = {
-#             'segment': 'programming_tutor',
-#             "regionals": regionals,
-#             "tms": territorial_managers_by_regionals,
-#             "reports": reports,
-#             "report_date_default": report_date_default,
-#             "username": request.user.username,
-#             "report_scales": possible_report_scales,
-#             "tm_totals": totals,
-#             "rm_totals": rm_totals,
-#             "ukraine_total": ukraine_total,
-#             "reports_by_tutor": reports_by_tutor,
-#             "user_group": get_user_role(request.user)
-#         }
-#         html_template = loader.get_template('home/report_programming_tutor_admin.html')
-#     else:
-#         tm_reports = []
-#         tm = f"{request.user.last_name} {request.user.first_name}"
-#         for report in reports:
-#             if report.territorial_manager == tm:
-#                 report.conversion = round(float(report.conversion), 2)
-#                 tm_reports.append(report)
-#                 if report.business == "programming":
-#                     if not (report.territorial_manager in totals):
-#                         totals[report.territorial_manager] = {
-#                             "total": report.total,
-#                             "attended": report.attended,
-#                             "payments": report.payments
-#                         }
-#                     else:
-#                         totals[report.territorial_manager]["total"] += report.total
-#                         totals[report.territorial_manager]["attended"] += report.attended
-#                         totals[report.territorial_manager]["payments"] += report.payments
-#         for tm in totals:
-#             if totals[tm]["payments"] == 0 and totals[tm]["attended"] == 0:
-#                 totals[tm]["conversion"] = 0
-#             else:
-#                 try:
-#                     totals[tm]["conversion"] = round((totals[tm]["payments"] / totals[tm]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     totals[tm]["conversion"] = 100
-#         reports_by_tutor = {}
-#         for report in reports:
-#             if report.territorial_manager != tm:
-#                 continue
-#             if report.business != "programming":
-#                 continue
-#             if report.tutor not in reports_by_tutor:
-#                 reports_by_tutor[report.tutor] = {
-#                     "total": report.total,
-#                     "attended": report.attended,
-#                     "payments": report.payments,
-#                     "territorial_manager": report.territorial_manager,
-#                     "regional_manager": report.regional_manager,
-#                     "business": "programming"
-#                 }
-#             else:
-#                 reports_by_tutor[report.tutor]["total"] += report.total
-#                 reports_by_tutor[report.tutor]["attended"] += report.attended
-#                 reports_by_tutor[report.tutor]["payments"] += report.payments
-#         for rep in reports_by_tutor:
-#             if reports_by_tutor[rep]["payments"] == 0 and reports_by_tutor[rep]["attended"] == 0:
-#                 reports_by_tutor[rep]["conversion"] = 0
-#             else:
-#                 try:
-#                     reports_by_tutor[rep]["conversion"] = round(
-#                         (reports_by_tutor[rep]["payments"] / reports_by_tutor[rep]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     reports_by_tutor[rep]["conversion"] = 100
-#         context = {
-#             'segment': 'programming_tutor',
-#             "reports": tm_reports,
-#             "report_date_default": report_date_default,
-#             "username": request.user.username,
-#             "report_scales": possible_report_scales,
-#             "tm": tm,
-#             "tm_totals": totals,
-#             "reports_by_tutor": reports_by_tutor,
-#             "user_group": get_user_role(request.user)
-#         }
-#         html_template = loader.get_template('home/report_programming_tutor_tm.html')
-#     return HttpResponse(html_template.render(context, request))
-#
-#
-# @login_required(login_url="/login/")
-# def tutors_english(request):
-#     # reports = Report.objects.all()
-#     # for report in reports:
-#     #     location = report.location_name
-#     #     location_tutor = Location.objects.filter(lms_location_name=location).first().tutor
-#     #     report.tutor = location_tutor
-#     #     report.save()
-#     month_report = None
-#     totals = {}
-#     rm_totals = {}
-#     ukraine_total = {
-#         "Ukraine": {
-#             "total": 0,
-#             "attended": 0,
-#             "payments": 0}}
-#     with open(f"{base_path}/../report_scales.txt", "r", encoding="UTF-8") as report_scales_fileobj:
-#         scales = report_scales_fileobj.readlines()
-#     scales_dict = {}
-#     for i in range(len(scales)):
-#         scales[i] = scales[i].replace("\n", "").replace("_", " - ")
-#         month = scales[i].split(":")[0]
-#         dates = scales[i].split(":")[1]
-#         if month not in scales_dict:
-#             scales_dict[month] = [dates]
-#         else:
-#             scales_dict[month].append(dates)
-#     possible_report_scales = []
-#     for key, value in scales_dict.items():
-#         possible_report_scales.append(key)
-#         for val in value:
-#             possible_report_scales.append(val)
-#     if request.method == 'POST':
-#         form = ReportDateForm(request.POST)
-#         if form.is_valid():
-#             try:
-#                 report_start, report_end = form.cleaned_data["report_scale"].split(" - ")
-#             except ValueError:
-#                 month_report = form.cleaned_data["report_scale"]
-#         else:
-#             report_start, report_end = possible_report_scales[-1].split(" - ")
-#     else:
-#         report_start, report_end = possible_report_scales[-1].split(" - ")
-#     if not month_report:
-#         report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
-#         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
-#         reports = Report.objects.filter(start_date__exact=report_start).filter(
-#             end_date__exact=report_end).all().order_by("client_manager")
-#         report_date_default = f"{report_start} - {report_end}"
-#     else:
-#         report_scales = scales_dict[month_report]
-#         scale_start = report_scales[0].split(" - ")[0]
-#         scale_end = report_scales[-1].split(" - ")[1]
-#         scale_start = datetime.datetime.strptime(scale_start, "%Y-%m-%d").date()
-#         scale_end = datetime.datetime.strptime(scale_end, "%Y-%m-%d").date()
-#         reports = Report.objects.filter(start_date__exact=scale_start).filter(end_date__exact=scale_end).all().order_by(
-#             "tutor")
-#         report_date_default = f'{scale_start} - {scale_end}'
-#     if not is_member(request.user, "territorial_manager"):
-#         regionals = []
-#         territorial_managers_by_regionals = {}
-#         if is_member(request.user, "admin"):
-#             for report in reports:
-#                 if not (report.regional_manager in regionals):
-#                     regionals.append(report.regional_manager)
-#         elif is_member(request.user, "regional"):
-#             full_name = f'{request.user.last_name} {request.user.first_name}'
-#             regionals.append(full_name)
-#         for report in reports:
-#             if not (report.territorial_manager in territorial_managers_by_regionals):
-#                 territorial_managers_by_regionals[report.territorial_manager] = report.regional_manager
-#
-#             report.conversion = round(float(report.conversion), 2)
-#             if report.business == "english":
-#                 if not (report.territorial_manager in totals):
-#                     totals[report.territorial_manager] = {
-#                         "total": report.total,
-#                         "attended": report.attended,
-#                         "payments": report.payments
-#                     }
-#                 else:
-#                     totals[report.territorial_manager]["total"] += report.total
-#                     totals[report.territorial_manager]["attended"] += report.attended
-#                     totals[report.territorial_manager]["payments"] += report.payments
-#                 if not (report.regional_manager in rm_totals):
-#                     rm_totals[report.regional_manager] = {
-#                         "total": report.total,
-#                         "attended": report.attended,
-#                         "payments": report.payments
-#                     }
-#                 else:
-#                     rm_totals[report.regional_manager]["total"] += report.total
-#                     rm_totals[report.regional_manager]["attended"] += report.attended
-#                     rm_totals[report.regional_manager]["payments"] += report.payments
-#                 if is_member(request.user, "admin"):
-#                     ukraine_total["Ukraine"]["total"] += report.total
-#                     ukraine_total["Ukraine"]["attended"] += report.attended
-#                     ukraine_total["Ukraine"]["payments"] += report.payments
-#         for tm in totals:
-#             if totals[tm]["payments"] == 0 and totals[tm]["attended"] == 0:
-#                 totals[tm]["conversion"] = 0
-#             else:
-#                 try:
-#                     totals[tm]["conversion"] = round((totals[tm]["payments"] / totals[tm]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     totals[tm]["conversion"] = 100
-#         for regman in rm_totals:
-#             if rm_totals[regman]["payments"] == 0 and rm_totals[regman]["attended"] == 0:
-#                 rm_totals[regman]["conversion"] = 0
-#             else:
-#                 try:
-#                     rm_totals[regman]["conversion"] = round(
-#                         (rm_totals[regman]["payments"] / rm_totals[regman]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     rm_totals[regman]["conversion"] = 100
-#         if is_member(request.user, "admin"):
-#             for country in ukraine_total:
-#                 if ukraine_total[country]["payments"] == 0 and ukraine_total[country]["attended"] == 0:
-#                     ukraine_total[country]["conversion"] = 0
-#                 else:
-#                     try:
-#                         ukraine_total[country]["conversion"] = round(
-#                             (ukraine_total[country]["payments"] / ukraine_total[country]["attended"]) * 100, 2)
-#                     except ZeroDivisionError:
-#                         ukraine_total[country]["conversion"] = 100
-#         reports_by_tutor = {}
-#         for report in reports:
-#             if report.business != "english":
-#                 continue
-#             if report.tutor not in reports_by_tutor:
-#                 reports_by_tutor[report.tutor] = {
-#                     "total": report.total,
-#                     "attended": report.attended,
-#                     "payments": report.payments,
-#                     "territorial_manager": report.territorial_manager,
-#                     "regional_manager": report.regional_manager,
-#                     "business": "english"
-#                 }
-#             else:
-#                 reports_by_tutor[report.tutor]["total"] += report.total
-#                 reports_by_tutor[report.tutor]["attended"] += report.attended
-#                 reports_by_tutor[report.tutor]["payments"] += report.payments
-#         for rep in reports_by_tutor:
-#             if reports_by_tutor[rep]["payments"] == 0 and reports_by_tutor[rep]["attended"] == 0:
-#                 reports_by_tutor[rep]["conversion"] = 0
-#             else:
-#                 try:
-#                     reports_by_tutor[rep]["conversion"] = round(
-#                         (reports_by_tutor[rep]["payments"] / reports_by_tutor[rep]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     reports_by_tutor[rep]["conversion"] = 100
-#
-#         context = {
-#             'segment': 'english_tutor',
-#             "regionals": regionals,
-#             "tms": territorial_managers_by_regionals,
-#             "reports": reports,
-#             "report_date_default": report_date_default,
-#             "username": request.user.username,
-#             "report_scales": possible_report_scales,
-#             "tm_totals": totals,
-#             "rm_totals": rm_totals,
-#             "ukraine_total": ukraine_total,
-#             "reports_by_tutor": reports_by_tutor,
-#             "user_group": get_user_role(request.user)
-#         }
-#         html_template = loader.get_template('home/report_english_tutor_admin.html')
-#     else:
-#         tm_reports = []
-#         tm = f"{request.user.last_name} {request.user.first_name}"
-#         for report in reports:
-#             if report.territorial_manager == tm:
-#                 report.conversion = round(float(report.conversion), 2)
-#                 tm_reports.append(report)
-#                 if report.business == "english":
-#                     if not (report.territorial_manager in totals):
-#                         totals[report.territorial_manager] = {
-#                             "total": report.total,
-#                             "attended": report.attended,
-#                             "payments": report.payments
-#                         }
-#                     else:
-#                         totals[report.territorial_manager]["total"] += report.total
-#                         totals[report.territorial_manager]["attended"] += report.attended
-#                         totals[report.territorial_manager]["payments"] += report.payments
-#         for tm in totals:
-#             if totals[tm]["payments"] == 0 and totals[tm]["attended"] == 0:
-#                 totals[tm]["conversion"] = 0
-#             else:
-#                 try:
-#                     totals[tm]["conversion"] = round((totals[tm]["payments"] / totals[tm]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     totals[tm]["conversion"] = 100
-#         reports_by_tutor = {}
-#         for report in reports:
-#             if report.territorial_manager != tm:
-#                 continue
-#             if report.business != "english":
-#                 continue
-#             if report.tutor not in reports_by_tutor:
-#                 reports_by_tutor[report.tutor] = {
-#                     "total": report.total,
-#                     "attended": report.attended,
-#                     "payments": report.payments,
-#                     "territorial_manager": report.territorial_manager,
-#                     "regional_manager": report.regional_manager,
-#                     "business": "english"
-#                 }
-#             else:
-#                 reports_by_tutor[report.tutor]["total"] += report.total
-#                 reports_by_tutor[report.tutor]["attended"] += report.attended
-#                 reports_by_tutor[report.tutor]["payments"] += report.payments
-#         for rep in reports_by_tutor:
-#             if reports_by_tutor[rep]["payments"] == 0 and reports_by_tutor[rep]["attended"] == 0:
-#                 reports_by_tutor[rep]["conversion"] = 0
-#             else:
-#                 try:
-#                     reports_by_tutor[rep]["conversion"] = round(
-#                         (reports_by_tutor[rep]["payments"] / reports_by_tutor[rep]["attended"]) * 100, 2)
-#                 except ZeroDivisionError:
-#                     reports_by_tutor[rep]["conversion"] = 100
-#         context = {
-#             'segment': 'english_tutor',
-#             "reports": tm_reports,
-#             "report_date_default": report_date_default,
-#             "username": request.user.username,
-#             "report_scales": possible_report_scales,
-#             "tm": tm,
-#             "tm_totals": totals,
-#             "reports_by_tutor": reports_by_tutor,
-#             "user_group": get_user_role(request.user)
-#         }
-#         html_template = loader.get_template('home/report_english_tutor_tm.html')
-#     return HttpResponse(html_template.render(context, request))
 
 
 def get_user_role(user):
@@ -4999,7 +3682,8 @@ def update_report_attended(region, start_date, end_date, attended, location, bus
             report_to_change = report
             break
     if report_to_change:
-        report_to_change.attended = str(int(report_to_change.attended) + int(attended))
+        report_to_change.attended = str(
+            int(report_to_change.attended) + int(attended))
         report_to_change.save()
         print(f"Updated report for {location}")
         return report_to_change
@@ -5079,7 +3763,8 @@ def update_teacher(student_id, group_id, attended):
 
 def update_attendance(student_id, issue):
     base_path = os.path.dirname(os.path.dirname(__file__))
-    df = pd.read_csv(f"{base_path}/../lms_reports/Ученики_20220831_150332.csv", sep=";")
+    df = pd.read_csv(
+        f"{base_path}/../lms_reports/Ученики_20220831_150332.csv", sep=";")
     df = df[df["ID"] == int(student_id)]
     group = int(df.iloc[0]["ID группы"])
     attendance = get_student_attendance(student_id, group)
@@ -5122,52 +3807,6 @@ def update_attendance(student_id, issue):
                         report.conversion = 100
                 report.save()
         update_teacher(student_id, group, attendance)
-
-
-@login_required(login_url="/login/")
-def create_student_amo_ref(request, issue_id):
-    html_template = loader.get_template("home/create_amo_ref.html")
-    issue: Issue = Issue.objects.filter(id=issue_id).first()
-    lms_id = issue.issue_description.split(";")[0]
-    if request.method == "POST":
-        form = CreateAmoRef(request.POST)
-        if form.is_valid():
-            entered_amo_id = form.cleaned_data["amo_id"]
-            real_amo_id = get_student_amo_id(lms_id)
-            if str(entered_amo_id) != str(real_amo_id):
-                form = CreateAmoRef()
-                return HttpResponse(
-                    html_template.render(
-                        {
-                            "segment": "issues",
-                            "lms_id": lms_id,
-                            "issue_id": issue_id,
-                            "form": form,
-                            "msg": "Введений АМО ID не співпадає з тим, що в LMS!",
-                        },
-                        request,
-                    )
-                )
-            else:
-                issue.issue_status = "resolved"
-                issue.save()
-                update_attendance(lms_id, issue)
-                return redirect(issues_new)
-
-    else:
-        form = CreateAmoRef()
-        return HttpResponse(
-            html_template.render(
-                {
-                    "segment": "issues",
-                    "lms_id": lms_id,
-                    "issue_id": issue_id,
-                    "form": form,
-                    "msg": "",
-                },
-                request,
-            )
-        )
 
 
 @login_required(login_url="/login/")
@@ -5306,7 +3945,6 @@ def pages(request):
     # All resource paths end in .html.
     # Pick out the html file name from the url. And load that template.
     try:
-
         load_template = request.path.split("/")[-1]
 
         if load_template == "admin":
@@ -5317,7 +3955,6 @@ def pages(request):
         return HttpResponse(html_template.render(context, request))
 
     except template.TemplateDoesNotExist:
-
         html_template = loader.get_template("home/page-404.html")
         return HttpResponse(html_template.render(context, request))
 
@@ -5365,7 +4002,8 @@ def teachers_programming(request):
     else:
         report_start, report_end = possible_report_scales[-1].split(" - ")
     if not month_report:
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_end = datetime.datetime.strptime(report_end, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
     else:
@@ -5374,7 +4012,8 @@ def teachers_programming(request):
         )
         report_scales = scales_dict[month_report]
         report_start = report_scales[0].split(" - ")[0]
-        report_start = datetime.datetime.strptime(report_start, "%Y-%m-%d").date()
+        report_start = datetime.datetime.strptime(
+            report_start, "%Y-%m-%d").date()
         report_date_default = f"{report_start} - {report_end}"
 
     reports = (
@@ -5420,7 +4059,8 @@ def teachers_programming(request):
         else:
             try:
                 rm_totals[regman]["conversion"] = round(
-                    (rm_totals[regman]["payments"] / rm_totals[regman]["attended"])
+                    (rm_totals[regman]["payments"] /
+                     rm_totals[regman]["attended"])
                     * 100,
                     2,
                 )
@@ -5440,6 +4080,7 @@ def teachers_programming(request):
         "rm_totals": rm_totals,
         "user_group": get_user_role(request.user),
     }
-    html_template = loader.get_template("home/report_programming_teacher_admin.html")
+    html_template = loader.get_template(
+        "home/report_programming_teacher_admin.html")
 
     return HttpResponse(html_template.render(context, request))

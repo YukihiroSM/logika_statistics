@@ -33,18 +33,23 @@ regions = [
 
 
 class Location(models.Model):
-    standart_name = models.CharField(max_length=256, blank=True, null=True, editable=False)
+    standart_name = models.CharField(
+        max_length=256, blank=True, null=True, editable=False)
     lms_location_name = models.CharField(max_length=256)
     client_manager = models.CharField(max_length=256, null=True, blank=True)
-    client_manager_english = models.CharField(max_length=256, null=True, blank=True)
-    territorial_manager = models.CharField(max_length=256, null=True, blank=True)
+    client_manager_english = models.CharField(
+        max_length=256, null=True, blank=True)
+    territorial_manager = models.CharField(
+        max_length=256, null=True, blank=True)
     regional_manager = models.CharField(max_length=256, null=True, blank=True)
     tutor = models.CharField(max_length=256, null=True, blank=True)
     tutor_english = models.CharField(max_length=256, null=True, blank=True)
-    region = models.CharField(max_length=200, choices=regions, default=None, null=True)
+    region = models.CharField(
+        max_length=200, choices=regions, default=None, null=True)
 
     def save(self, *args, **kwargs):
-        self.standart_name = str(self.lms_location_name).lower().replace(" ", "_").replace("-", "_").replace('"', "'").replace(",", "").replace(".", "")
+        self.standart_name = str(self.lms_location_name).lower().replace(
+            " ", "_").replace("-", "_").replace('"', "'").replace(",", "").replace(".", "")
         super(Location, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -83,7 +88,8 @@ class Report(models.Model):
     total = models.IntegerField()
     attended = models.IntegerField()
     payments = models.IntegerField()
-    students_without_amo = models.CharField(max_length=1024, null=True, blank=True)
+    students_without_amo = models.CharField(
+        max_length=1024, null=True, blank=True)
     conversion = models.FloatField()
     territorial_manager = models.CharField(max_length=256, default="")
     start_date = models.DateField(null=True, blank=True)
@@ -142,7 +148,8 @@ class TeacherReport(models.Model):
 class GlobalGroup(models.Model):
     lms_id = models.CharField(max_length=16)
     group_name = models.CharField(max_length=256)
-    location = models.ForeignKey(Location, on_delete=models.DO_NOTHING, null=True)
+    location = models.ForeignKey(
+        Location, on_delete=models.DO_NOTHING, null=True)
     teacher = models.CharField(max_length=256)
     client_manager = models.CharField(max_length=256)
     group_type = models.CharField(max_length=256)
@@ -159,8 +166,10 @@ class StudentReport(models.Model):
     student_lms_id = models.CharField(max_length=16, null=True)
     student_first_name = models.CharField(max_length=128, null=True)
     student_last_name = models.CharField(max_length=128, null=True)
-    student_mk_group_id = models.ForeignKey(GlobalGroup, on_delete=models.DO_NOTHING, related_name="student_mk", null=True)
-    student_current_group_id = models.ForeignKey(GlobalGroup, on_delete=models.DO_NOTHING, related_name="student_current", null=True)
+    student_mk_group_id = models.ForeignKey(
+        GlobalGroup, on_delete=models.DO_NOTHING, related_name="student_mk", null=True)
+    student_current_group_id = models.ForeignKey(
+        GlobalGroup, on_delete=models.DO_NOTHING, related_name="student_current", null=True)
     enrolled_mc = models.IntegerField(null=True)
     attended_mc = models.IntegerField(null=True)
     amo_id = models.CharField(max_length=16, null=True)
@@ -179,9 +188,11 @@ class StudentReport(models.Model):
 
 
 class UsersMapping(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_id")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="user_id")
     password = models.CharField(max_length=256)
-    related_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name="related_user_id", null=True)
+    related_to = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="related_user_id", null=True)
     auth_token = models.CharField(max_length=256, null=True)
     login_timestamp = models.DateTimeField(null=True)
 
@@ -232,6 +243,19 @@ class ClientManagerReport(models.Model):
 
 class CourseReport(models.Model):
     course = models.CharField(max_length=256, null=True)
+    regional_manager = models.CharField(max_length=256, null=True)
+    territorial_manager = models.CharField(max_length=256, null=True)
+    business = models.CharField(max_length=128, null=True)
+    total_attended = models.IntegerField()
+    total_payments = models.IntegerField()
+    conversion = models.FloatField()
+    total_enrolled = models.IntegerField()
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+
+
+class TeacherReport(models.Model):
+    teacher = models.CharField(max_length=256, null=True)
     regional_manager = models.CharField(max_length=256, null=True)
     territorial_manager = models.CharField(max_length=256, null=True)
     business = models.CharField(max_length=128, null=True)

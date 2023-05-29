@@ -4,7 +4,7 @@ from datetime import datetime
 import library
 from django.core.management.base import BaseCommand
 
-from apps.home.models import ClientManagerReport, LocationReport, StudentReport, CourseReport, Location
+from apps.home.models import ClientManagerReport, LocationReport, StudentReport, CourseReport, Location, TeacherReport
 
 
 class Command(BaseCommand):
@@ -38,37 +38,43 @@ class Command(BaseCommand):
     @staticmethod
     def get_rm_by_cm(client_manager):
         location_regionals = Location.objects.filter(client_manager=client_manager).values_list("regional_manager",
-                                                                                             flat=True).distinct()
+                                                                                                flat=True).distinct()
         return location_regionals
 
     @staticmethod
     def get_rm_by_tm(tm):
         location_regionals = Location.objects.filter(territorial_manager=tm).values_list("regional_manager",
-                                                                                             flat=True).distinct()
+                                                                                         flat=True).distinct()
         return location_regionals
 
     @staticmethod
     def get_rm_by_location(location):
-        location_regionals = Location.objects.filter(lms_location_name=location).values_list("regional_manager", flat=True).distinct()
+        location_regionals = Location.objects.filter(
+            lms_location_name=location).values_list("regional_manager", flat=True).distinct()
         return location_regionals
 
-
-
     def handle(self, *args, **options):
-        start_date = datetime.strptime(os.environ.get("start_date"), "%Y-%m-%d").date()
-        end_date = datetime.strptime(os.environ.get("end_date"), "%Y-%m-%d").date()
-        reports = StudentReport.objects.filter(start_date__gte=start_date, end_date__lte=end_date, business="programming")
-        territorial_managers = reports.values_list("territorial_manager", flat=True).distinct()
-        regional_managers = reports.values_list("regional_manager", flat=True).distinct()
-        client_managers = reports.values_list("client_manager", flat=True).distinct()
+        start_date = datetime.strptime(
+            os.environ.get("start_date"), "%Y-%m-%d").date()
+        end_date = datetime.strptime(
+            os.environ.get("end_date"), "%Y-%m-%d").date()
+        reports = StudentReport.objects.filter(
+            start_date__gte=start_date, end_date__lte=end_date, business="programming")
+        territorial_managers = reports.values_list(
+            "territorial_manager", flat=True).distinct()
+        regional_managers = reports.values_list(
+            "regional_manager", flat=True).distinct()
+        client_managers = reports.values_list(
+            "client_manager", flat=True).distinct()
         all_courses = reports.values_list("course", flat=True).distinct()
         locations = reports.values_list("location", flat=True).distinct()
+        all_teachers = reports.values_list("teacher", flat=True).distinct()
         for regional_manager in regional_managers:
             for territorial_manager in territorial_managers:
-                if not(regional_manager in self.get_rm_by_tm(territorial_manager)):
+                if not (regional_manager in self.get_rm_by_tm(territorial_manager)):
                     continue
                 for client_manager in client_managers:
-                    if not(regional_manager in self.get_rm_by_cm(client_manager)):
+                    if not (regional_manager in self.get_rm_by_cm(client_manager)):
                         continue
                     if not territorial_manager in Location.objects.filter(client_manager=client_manager).values_list(
                             "territorial_manager", flat=True).distinct():
@@ -103,7 +109,7 @@ class Command(BaseCommand):
                     new_report.save()
 
                 for location in locations:
-                    if not(regional_manager in self.get_rm_by_location(location)):
+                    if not (regional_manager in self.get_rm_by_location(location)):
                         continue
                     if not (territorial_manager in Location.objects.filter(lms_location_name=location).values_list(
                             "territorial_manager", flat=True).distinct()):
@@ -151,7 +157,8 @@ class Command(BaseCommand):
                         amo_id__isnull=True, is_duplicate=1).all())
                     conversion = self.get_conversion(payments, attended_mc)
                     new_report = CourseReport(
-                        course=library.get_course_by_course_name(course, translate=True),
+                        course=library.get_course_by_course_name(
+                            course, translate=True),
                         territorial_manager=territorial_manager,
                         regional_manager=regional_manager,
                         business="programming",
@@ -164,5 +171,35 @@ class Command(BaseCommand):
                     )
                     print(
                         f"Regional Manager: {regional_manager}, Territorial Manager: {territorial_manager}, Course: {library.get_course_by_course_name(course, translate=True)}"
+                        f"Payments: {payments}, Attended: {attended_mc}, Enrolled: {enrolled_mc}, Conversion: {conversion}")
+                    new_report.save()
+
+                for teacher in all_teachers:
+                    payments = len(reports.filter(business="programming", teacher=teacher,
+                                                  territorial_manager=territorial_manager,
+                                                  regional_manager=regional_manager, payment=1).all())
+                    attended_mc = len(reports.filter(business="programming", teacher=teacher,
+                                                     territorial_manager=territorial_manager,
+                                                     regional_manager=regional_manager, attended_mc=1).exclude(
+                        amo_id__isnull=True, is_duplicate=1).all())
+                    enrolled_mc = len(reports.filter(business="programming", teacher=teacher,
+                                                     territorial_manager=territorial_manager,
+                                                     regional_manager=regional_manager, enrolled_mc=1).exclude(
+                        amo_id__isnull=True, is_duplicate=1).all())
+                    conversion = self.get_conversion(payments, attended_mc)
+                    new_report = TeacherReport(
+                        teacher=teacher,
+                        territorial_manager=territorial_manager,
+                        regional_manager=regional_manager,
+                        business="programming",
+                        total_attended=attended_mc,
+                        total_payments=payments,
+                        conversion=conversion,
+                        total_enrolled=enrolled_mc,
+                        start_date=start_date,
+                        end_date=end_date
+                    )
+                    print(
+                        f"Regional Manager: {regional_manager}, Territorial Manager: {territorial_manager}, Teacher: {teacher}"
                         f"Payments: {payments}, Attended: {attended_mc}, Enrolled: {enrolled_mc}, Conversion: {conversion}")
                     new_report.save()
