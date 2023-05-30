@@ -3,7 +3,7 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 import io
-import os, environ
+import os
 from urllib.parse import urlparse
 
 from google.cloud import secretmanager
@@ -12,50 +12,16 @@ from google.cloud import secretmanager
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-env = environ.Env(DEBUG=(bool, False))
-env_file = os.path.join(BASE_DIR, ".env")
-
-if os.path.isfile(env_file):
-    # Use a local secret file, if provided
-    env.read_env(env_file)
-elif os.environ.get("GOOGLE_CLOUD_PROJECT", None):
-    # Pull secrets from Secret Manager
-    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-    client = secretmanager.SecretManagerServiceClient()
-    settings_name = os.environ.get("SETTINGS_NAME", "django_settings")
-    name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
-    payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
-
-    env.read_env(io.StringIO(payload))
-else:
-    raise Exception("No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found.")
-# [END gaestd_py_django_secret_config]
-
-
-
-# Take environment variables from .env file
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY', default='S#perS3crEt_007')
+SECRET_KEY ='S#perS3crEt_007'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 # Assets Management
-ASSETS_ROOT = os.getenv('ASSETS_ROOT', '/static/assets') 
+ASSETS_ROOT = '/static/assets'
 
-# load production server from .env
-# APPENGINE_URL = env("APPENGINE_URL", default=None)
-# if APPENGINE_URL:
-#     # Ensure a scheme is present in the URL before it's processed.
-#     if not urlparse(APPENGINE_URL).scheme:
-#         APPENGINE_URL = f"https://{APPENGINE_URL}"
-#
-#     ALLOWED_HOSTS = [urlparse(APPENGINE_URL).netloc]
-#     CSRF_TRUSTED_ORIGINS = [APPENGINE_URL]
-#     SECURE_SSL_REDIRECT = True
-# else:
 ALLOWED_HOSTS = ["*"]
 # Application definition
 

@@ -42,6 +42,7 @@ from .models import (
     ClientManagerReport,
     LocationReport,
     CourseReport,
+    TeacherReportNew
 )
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -77,7 +78,7 @@ scales_new = {
     "Лютий": "2023-02-01_2023-02-24",
     "Березень": "2023-03-01_2023-03-31",
     "Квітень": "2023-04-01_2023-04-30",
-    "Травень": "2023-05-01_2023-05-14",
+    "Травень": "2023-05-01_2023-05-28"
 }
 
 
@@ -313,7 +314,7 @@ def programming_teacher_report_updated(request):
     user_role = get_user_role(request.user)
     if user_role == "admin":
         teachers_report = (
-            TeacherReport.objects.filter(
+            TeacherReportNew.objects.filter(
                 start_date=report_start, end_date=report_end)
             .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
             .all()
@@ -321,7 +322,7 @@ def programming_teacher_report_updated(request):
     elif user_role == "regional":
         user_name = f"{request.user.last_name} {request.user.first_name}"
         teachers_report = (
-            TeacherReport.objects.filter(
+            TeacherReportNew.objects.filter(
                 start_date=report_start, end_date=report_end, regional_manager=user_name
             )
             .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
@@ -330,10 +331,21 @@ def programming_teacher_report_updated(request):
     elif user_role == "territorial_manager":
         user_name = f"{request.user.last_name} {request.user.first_name}"
         teachers_report = (
-            TeacherReport.objects.filter(
+            TeacherReportNew.objects.filter(
                 start_date=report_start,
                 end_date=report_end,
                 territorial_manager=user_name,
+            )
+            .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
+            .all()
+        )
+    elif user_role == "tutor":
+        user_name = f"{request.user.last_name} {request.user.first_name}"
+        teachers_report = (
+            TeacherReportNew.objects.filter(
+                start_date=report_start,
+                end_date=report_end,
+                tutor=user_name,
             )
             .exclude(territorial_manager="UNKNOWN", regional_manager__isnull=True)
             .all()
@@ -344,7 +356,7 @@ def programming_teacher_report_updated(request):
             f"{user_mapping.related_to.last_name} {user_mapping.related_to.first_name}"
         )
         teachers_report = (
-            TeacherReport.objects.filter(
+            TeacherReportNew.objects.filter(
                 start_date=report_start,
                 end_date=report_end,
                 territorial_manager=user_name,
@@ -370,6 +382,7 @@ def programming_teacher_report_updated(request):
         context = {}
         html_template = loader.get_template("home/page-403.html")
         return HttpResponse(html_template.render(context, request))
+    
     managers = {}
     totals_tm = {}
     totals_rm = {}

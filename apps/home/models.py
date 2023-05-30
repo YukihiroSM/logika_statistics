@@ -254,7 +254,7 @@ class CourseReport(models.Model):
     end_date = models.DateField(null=True, blank=True)
 
 
-class TeacherReport(models.Model):
+class TeacherReportNew(models.Model):
     teacher = models.CharField(max_length=256, null=True)
     regional_manager = models.CharField(max_length=256, null=True)
     territorial_manager = models.CharField(max_length=256, null=True)

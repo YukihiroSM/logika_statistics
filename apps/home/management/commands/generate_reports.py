@@ -4,7 +4,7 @@ from datetime import datetime
 import library
 from django.core.management.base import BaseCommand
 
-from apps.home.models import ClientManagerReport, LocationReport, StudentReport, CourseReport, Location, TeacherReport
+from apps.home.models import ClientManagerReport, LocationReport, StudentReport, CourseReport, Location, TeacherReportNew
 
 
 class Command(BaseCommand):
@@ -187,7 +187,7 @@ class Command(BaseCommand):
                                                      regional_manager=regional_manager, enrolled_mc=1).exclude(
                         amo_id__isnull=True, is_duplicate=1).all())
                     conversion = self.get_conversion(payments, attended_mc)
-                    new_report = TeacherReport(
+                    new_report = TeacherReportNew(
                         teacher=teacher,
                         territorial_manager=territorial_manager,
                         regional_manager=regional_manager,
