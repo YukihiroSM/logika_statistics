@@ -44,3 +44,4 @@ lms_reports/Ученики_20220831_150332.csv
 location_tm_regional_tutor_mapping.csv
 report_scales.txt
 session.pickle
+export/
