@@ -18,7 +18,7 @@ SECRET_KEY = 'S#perS3crEt_007'
 DEBUG = True
 
 # Assets Management
-ASSETS_ROOT = '/static/assets'
+
 
 ALLOWED_HOSTS = ["*"]
 # Application definition
@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.home',  # Enable the inner home (home)
     'django_extensions',
+    'teachers.apps.TeachersConfig',
 ]
 
 REST_FRAMEWORK = {
@@ -193,6 +194,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 STATIC_ROOT = os.path.join(CORE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+ASSETS_ROOT = '/static/assets/'
 
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
