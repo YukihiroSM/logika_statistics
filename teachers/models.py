@@ -1,6 +1,12 @@
 from django.db import models
 from apps.home.models import GlobalGroup
 
+COURSE_TYPES = (
+    ("english", "Англійська"),
+    ("programming", "Програмування"),
+    ("unknown", "Невідомо")
+)
+
 
 class TeacherGroup(models.Model):
     teacher = models.ForeignKey('Teacher', on_delete=models.CASCADE)
@@ -25,3 +31,10 @@ class Lesson(models.Model):
     lesson_course = models.CharField(max_length=256)
     lesson_type = models.CharField(max_length=256)
     lesson_status = models.CharField(max_length=256)
+
+
+class Course(models.Model):
+    title = models.CharField(max_length=256)
+    lms_course_id = models.CharField(max_length=100)
+    course_type = models.CharField(max_length=256, choices=COURSE_TYPES)
+    is_active = models.BooleanField(default=False)

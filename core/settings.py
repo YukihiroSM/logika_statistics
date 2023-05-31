@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.home',  # Enable the inner home (home)
     'django_extensions',
     'teachers.apps.TeachersConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 REST_FRAMEWORK = {

@@ -14,4 +14,5 @@ urlpatterns = [
     # Leave `Home.Urls` as last the last line
     path("", include("apps.home.urls")),
     path("teachers/", include("teachers.urls")),
+    path("notifications/", include("notifications.urls")),
 ]
