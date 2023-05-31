@@ -2,8 +2,8 @@ import os
 from datetime import datetime
 import library
 from django.core.management.base import BaseCommand
-from teachers.models import Course
-from notifications.models import Notification
+from apps.teachers.models import Course
+from apps.notifications.models import Notification
 from django.contrib.auth.models import User
 
 
