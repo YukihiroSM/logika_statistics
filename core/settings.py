@@ -6,15 +6,13 @@ import io
 import os
 from urllib.parse import urlparse
 
-from google.cloud import secretmanager
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY ='S#perS3crEt_007'
+SECRET_KEY = 'S#perS3crEt_007'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -58,7 +56,8 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'core.urls'
 LOGIN_REDIRECT_URL = "home"  # Route defined in home/urls.py
 LOGOUT_REDIRECT_URL = "home"  # Route defined in home/urls.py
-TEMPLATE_DIR = os.path.join(CORE_DIR, "apps/templates")  # ROOT dir for templates
+TEMPLATE_DIR = os.path.join(
+    CORE_DIR, "apps/templates")  # ROOT dir for templates
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 TEMPLATES = [
@@ -115,12 +114,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-    'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    'NAME': os.getenv('DB_NAME', 'logikadb'),
-    'USER': os.getenv('DB_USERNAME', 'logikaadmin'),
-    'PASSWORD': os.getenv('DB_PASS', 'logikaadmin'),
-    'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-    'PORT': os.getenv('DB_PORT', 5432),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DB_NAME', 'logikadb'),
+        'USER': os.getenv('DB_USERNAME', 'logikaadmin'),
+        'PASSWORD': os.getenv('DB_PASS', 'logikaadmin'),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', 5432),
     },
 }
 # DATABASES = {
