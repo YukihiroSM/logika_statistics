@@ -47,3 +47,4 @@ session.pickle
 export/
 test.ics
 scripts/test_report.py
+.prettierignore

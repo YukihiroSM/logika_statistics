@@ -1,0 +1,102 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Курси {% endblock %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+<!-- [ Main Content ] start -->
+<div class="pcoded-main-container">
+    <div class="pcoded-wrapper">
+
+        <div class="pcoded-content">
+            <div class="pcoded-inner-content">
+                <!-- [ breadcrumb ] start -->
+                <div class="page-header">
+                    <div class="page-block">
+                        <div class="row align-items-center">
+                            <div class="col-md-12">
+                                <div class="page-header-title">
+                                    <h5 class="m-b-10"> </h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- [ breadcrumb ] end -->
+                <div class="main-body">
+                    <div class="page-wrapper">
+                        <!-- [ Main Content ] start -->
+                        <div class="col-xl-12 col-sm-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Перегляд курсів</h5>
+                                    <a href="{% url 'view_courses' %}?type=all" class="btn btn-{% if course_type != 'all' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Всі курси</a>
+                                    <a href="{% url 'view_courses' %}?type=unknown" class="btn btn-{% if course_type != 'unknown' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Невідомі</a>
+                                    <a href="{% url 'view_courses' %}?type=programming" class="btn btn-{% if course_type != 'programming' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Програмування</a>
+                                    <a href="{% url 'view_courses' %}?type=english" class="btn btn-{% if course_type != 'english' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Англійська</a>
+                                </div>
+                                <div class="card-block px-0 py-3">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <tbody>
+                                                {% for course in courses %}
+
+                                                <tr class="unread">
+                                                    <td>
+                                                        <h6 class="mb-1"><a
+                                                                href="https://lms.logikaschool.com/course/view/{{course.lms_course_id}}"
+                                                                target="_blank">{{course.title}}</a></h6>
+                                                        <p class="m-0"><a
+                                                                href="https://lms.logikaschool.com/course/view/{{course.lms_course_id}}"
+                                                                target="_blank">{{course.lms_course_id}}</a></p>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group mb-2 mr-2">
+                                                            <button class="btn btn-warning dropdown-toggle"
+                                                                type="button" data-toggle="dropdown"
+                                                                aria-haspopup="true" aria-expanded="false">Напрям:
+                                                                {{course.get_course_type_display}}</button>
+                                                            <div class="dropdown-menu" x-placement="bottom-start"
+                                                                style="position: absolute; transform: translate3d(0px, 42px, 0px); top: 0px; left: 0px; will-change: transform;">
+                                                                <a class="dropdown-item"
+                                                                    href="{% url 'update-course'%}?type=business&course_id={{course.id}}&value=english">Англійська</a>
+                                                                <a class="dropdown-item"
+                                                                    href="{% url 'update-course'%}?type=business&course_id={{course.id}}&value=english">Програмування</a>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    {% if course.is_active %}
+                                                    <td>
+                                                        <a href="{% url 'update-course'%}?type=status&course_id={{course.id}}&value=false"
+                                                            class="btn btn-square btn-danger">Вимкнути</a>
+                                                    </td>
+                                                    {% else %}
+                                                    <td>
+                                                        <a href="{% url 'update-course'%}?type=status&course_id={{course.id}}&value=true"
+                                                            class="btn btn-square btn-success">Увімкнути</a>
+                                                    </td>
+                                                    {% endif %}
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- [ Main Content ] end -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- [ Main Content ] end -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

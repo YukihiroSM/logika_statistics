@@ -9,3 +9,6 @@ class Notification(models.Model):
     notification_username = models.CharField(max_length=256)
     notification_type = models.CharField(max_length=256)
     generated_by = models.CharField(max_length=256)
+
+    def __str__(self):
+        return self.title

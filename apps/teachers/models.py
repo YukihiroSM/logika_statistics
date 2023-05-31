@@ -24,6 +24,9 @@ class Teacher(models.Model):
     is_english = models.BooleanField(default=False)
     is_programming = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.full_name
+
 
 class Lesson(models.Model):
     title = models.CharField(max_length=256)
@@ -32,9 +35,16 @@ class Lesson(models.Model):
     lesson_type = models.CharField(max_length=256)
     lesson_status = models.CharField(max_length=256)
 
+    def __str__(self):
+        return self.title
+
 
 class Course(models.Model):
     title = models.CharField(max_length=256)
     lms_course_id = models.CharField(max_length=100)
     course_type = models.CharField(max_length=256, choices=COURSE_TYPES)
     is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
