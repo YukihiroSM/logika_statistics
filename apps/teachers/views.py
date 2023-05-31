@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from apps.teachers.models import Course
+from apps.teachers import utils
 
 
 def view_courses(request):
@@ -8,14 +9,20 @@ def view_courses(request):
         courses = Course.objects.filter(course_type=course_type).all()
     else:
         courses = Course.objects.all()
-    context = {"courses": courses, "page_title": "Courses", "course_type": course_type}
+    context = {
+        "courses": courses,
+        "page_title": "Courses",
+        "course_type": course_type,
+        "user_group": utils.user_group(request)
+    }
     return render(request, 'teachers/view_courses.html', context)
 
 
 def update_course(request):
-    change_type, course_id, value = request.GET.get("type"), request.GET.get("course_id"), request.GET.get("value")
+    change_type, course_id, value = request.GET.get(
+        "type"), request.GET.get("course_id"), request.GET.get("value")
     course = Course.objects.get(id=course_id)
-    if change_type == "business":   
+    if change_type == "business":
         course.course_type = value
 
     if change_type == "status":
