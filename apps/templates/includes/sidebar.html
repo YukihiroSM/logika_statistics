@@ -18,13 +18,11 @@
                             БО</span></a>
                 </li>
                 {% endif %}
-                {% if user_group == "admin" or user_role == "admin" %}
                 <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
                     class="nav-item">
                     <a href="{% url 'view_courses' %}" class="nav-link "><span class="pcoded-micon"><i
                                 class="feather icon-users"></i></span><span class="pcoded-mtext">Курси</span></a>
                 </li>
-                {% endif %}
                 {% if user_group != "tutor" %}
                 <li class="nav-item pcoded-menu-caption">
                     <h6>Адміністративний відділ</h6>
