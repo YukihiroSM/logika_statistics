@@ -1,4 +1,4 @@
-{% extends "layouts/base.html" %}
+{% extends 'layouts/base.html' %}
 
 {% block title %} Курси {% endblock %}
 
@@ -36,6 +36,7 @@
                                     <a href="{% url 'view_courses' %}?type=unknown" class="btn btn-{% if course_type != 'unknown' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Невідомі</a>
                                     <a href="{% url 'view_courses' %}?type=programming" class="btn btn-{% if course_type != 'programming' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Програмування</a>
                                     <a href="{% url 'view_courses' %}?type=english" class="btn btn-{% if course_type != 'english' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Англійська</a>
+                                    <a href="{% url 'view_courses' %}?type=other" class="btn btn-{% if course_type != 'other' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Інші</a>
                                 </div>
                                 <div class="card-block px-0 py-3">
                                     <div class="table-responsive">
@@ -64,6 +65,8 @@
                                                                     href="{% url 'update-course'%}?type=business&course_id={{course.id}}&value=english">Англійська</a>
                                                                 <a class="dropdown-item"
                                                                     href="{% url 'update-course'%}?type=business&course_id={{course.id}}&value=english">Програмування</a>
+                                                                <a class="dropdown-item"
+                                                                    href="{% url 'update-course'%}?type=business&course_id={{course.id}}&value=other">Інше</a>
                                                             </div>
                                                         </div>
                                                     </td>

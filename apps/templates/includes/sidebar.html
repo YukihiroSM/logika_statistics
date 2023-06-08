@@ -12,15 +12,15 @@
             <ul class="nav pcoded-inner-navbar">
                 {% if user_role == "territorial_manager" or user_group == "territorial_manager" or user_role == "regional" or user_group == "regional" or user_role == "admin" or user_group == "admin" %}
                 <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
-                    class="nav-item {% if 'consolidation' in segment %} active {% endif %}">
+                    class="nav-item">
                     <a href="/consolidation" class="nav-link "><span class="pcoded-micon"><i
                                 class="feather icon-users"></i></span><span class="pcoded-mtext">Зведення 1С та
                             БО</span></a>
                 </li>
                 {% endif %}
-                {% if user_role == "admin" or user_group == "admin" %}
+                {% if user_group == "admin" or user_role == "admin" %}
                 <li data-username="dashboard Default Ecommerce CRM Analytics Crypto Project"
-                    class="nav-item {% if 'consolidation' in segment %} active {% endif %}">
+                    class="nav-item">
                     <a href="{% url 'view_courses' %}" class="nav-link "><span class="pcoded-micon"><i
                                 class="feather icon-users"></i></span><span class="pcoded-mtext">Курси</span></a>
                 </li>
