@@ -1,0 +1,100 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Курси {% endblock %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% block content %}
+
+
+<section class="pcoded-main-container">
+    <div class="pcoded-wrapper">
+
+        <div class="pcoded-content">
+            <div class="pcoded-inner-content">
+                <!-- [ breadcrumb ] start -->
+                <div class="page-header">
+                    <div class="page-block">
+                        <div class="row align-items-center">
+                            <div class="col-md-12">
+                                <div class="page-header-title">
+                                    <h5 class="m-b-10">Перегляд уроків курсу</h5>
+                                </div>
+                                <ul class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="{% url 'view_courses' %}">Курси</a></li>
+                                    <li class="breadcrumb-item"><a href="">{{course.title}}</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- [ breadcrumb ] end -->
+                <div class="main-body">
+                    <div class="page-wrapper">
+                        <!-- [ Main Content ] start -->
+                        <div class="row">
+                            <!-- [ basic-table ] start -->
+                            <div class="col-xl-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>{{course.title}}</h5>
+                                    </div>
+                                    <div class="card-block table-border-style">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Урок</th>
+                                                        <th>Тип уроку</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for lesson in course_lessons %}
+                                                    <tr>
+                                                        <th scope="row">{{ forloop.counter }}</th>
+                                                        <td>{{lesson.title}}</td>
+                                                        <td><button class="btn btn-{% if lesson.lesson_type == 'regular' %}secondary{% elif lesson.lesson_type == 'open_lesson' %}success{%elif lesson.lesson_type == 'parents_meeting'%}warning{%endif%} {% if user_group in change_access%}dropdown-toggle{%endif%}"
+                                                                type="button" data-toggle="dropdown"
+                                                                aria-haspopup="true" aria-expanded="false">Тип уроку:
+                                                                {{lesson.get_lesson_type_display}}</button>
+                                                            {% if user_group in change_access %}
+                                                                <div class="dropdown-menu" x-placement="bottom-start"
+                                                                style="position: absolute; transform: translate3d(0px, 42px, 0px); top: 0px; left: 0px; will-change: transform;">
+                                                                <a class="dropdown-item"
+                                                                    href="{% url 'update-lesson'%}?lesson_id={{lesson.id}}&value=open_lesson&course={{course.id}}">Відкритий
+                                                                    урок</a>
+                                                                <a class="dropdown-item"
+                                                                    href="{% url 'update-lesson'%}?lesson_id={{lesson.id}}&value=parents_meeting&course={{course.id}}">Збори
+                                                                    з батьками</a>
+                                                                <a class="dropdown-item"
+                                                                    href="{% url 'update-lesson'%}?lesson_id={{lesson.id}}&value=regular&course={{course.id}}">Звичайний
+                                                                    урок</a>
+
+                                                                </div>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- [ basic-table ] end -->
+                        </div>
+                        <!-- [ Main Content ] end -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
