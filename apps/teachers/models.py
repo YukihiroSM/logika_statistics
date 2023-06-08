@@ -4,7 +4,14 @@ from apps.home.models import GlobalGroup
 COURSE_TYPES = (
     ("english", "Англійська"),
     ("programming", "Програмування"),
-    ("unknown", "Невідомо")
+    ("unknown", "Невідомо"),
+    ("other", "Інше")
+)
+
+LESSON_TYPES = (
+    ("regular", "Звичайний урок"),
+    ("open_lesson", "Відкритий урок"),
+    ("Parents_meeting",  "Збори з батьками")
 )
 
 
@@ -23,9 +30,17 @@ class Teacher(models.Model):
     full_name = models.CharField(max_length=100)
     is_english = models.BooleanField(default=False)
     is_programming = models.BooleanField(default=False)
+    tutor = models.CharField(max_length=100, null=True, blank=True)
+    location = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.full_name
+
+
+class CourseLesson(models.Model):
+    title = models.CharField(max_length=256)
+    lesson_course = models.CharField(max_length=256)
+    lesson_type = models.CharField(max_length=256, choices=LESSON_TYPES)
 
 
 class Lesson(models.Model):
@@ -34,6 +49,8 @@ class Lesson(models.Model):
     lesson_course = models.CharField(max_length=256)
     lesson_type = models.CharField(max_length=256)
     lesson_status = models.CharField(max_length=256)
+    related_course_lesson = models.ForeignKey(
+        to=CourseLesson, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -45,6 +62,7 @@ class Course(models.Model):
     course_type = models.CharField(max_length=256, choices=COURSE_TYPES)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    course_lessons = models.ManyToManyField(to=CourseLesson, blank=True)
 
     def __str__(self):
         return self.title
