@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from apps.teachers.models import Course
+from apps.teachers.models import Course, CourseLesson
 from apps.teachers import utils
 
 
@@ -13,7 +13,8 @@ def view_courses(request):
         "courses": courses,
         "page_title": "Courses",
         "course_type": course_type,
-        "user_group": utils.user_group(request)
+        "user_group": utils.user_group(request),
+        "change_access": ["admin", "methodologist", "regional"]
     }
     return render(request, 'teachers/view_courses.html', context)
 
@@ -30,3 +31,24 @@ def update_course(request):
 
     course.save()
     return redirect(to="view_courses")
+
+
+def view_course_lessons(request, pk):
+    course = Course.objects.get(id=pk)
+    context = {
+        "course_lessons": course.course_lessons.all().order_by("id"),
+        "user_group": utils.user_group(request),
+        "course": course,
+        "change_access": ["admin", "methodologist", "regional"]
+    }
+    
+    return render(request, 'teachers/view_course_lessons.html', context)
+
+
+def update_lesson(request):
+    lesson_id, value, course_id = request.GET.get("lesson_id"), request.GET.get("value"), request.GET.get("course")
+    lesson = CourseLesson.objects.get(id=lesson_id)
+    lesson.lesson_type = value
+
+    lesson.save()
+    return redirect(to="view-course-lessons", pk=course_id)

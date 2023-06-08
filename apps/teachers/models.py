@@ -11,7 +11,13 @@ COURSE_TYPES = (
 LESSON_TYPES = (
     ("regular", "Звичайний урок"),
     ("open_lesson", "Відкритий урок"),
-    ("Parents_meeting",  "Збори з батьками")
+    ("parents_meeting",  "Збори з батьками")
+)
+
+LESSON_STATUSES = (
+    ("planned", "Заплановано"),
+    ("not_planned", "Не заплановано"),
+    ("passed", "Відбувся")
 )
 
 
@@ -38,17 +44,21 @@ class Teacher(models.Model):
 
 
 class CourseLesson(models.Model):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        print(f"Creating course Lesson {self.title}")
+
     title = models.CharField(max_length=256)
     lesson_course = models.CharField(max_length=256)
     lesson_type = models.CharField(max_length=256, choices=LESSON_TYPES)
 
+    def __str__(self):
+        return f"{self.lesson_course}: {self.title}"
 
 class Lesson(models.Model):
-    title = models.CharField(max_length=256)
     lesson_datetime = models.DateTimeField()
-    lesson_course = models.CharField(max_length=256)
-    lesson_type = models.CharField(max_length=256)
-    lesson_status = models.CharField(max_length=256)
+    lesson_status = models.CharField(max_length=256, choices=LESSON_STATUSES)
     related_course_lesson = models.ForeignKey(
         to=CourseLesson, on_delete=models.CASCADE, null=True, blank=True)
 

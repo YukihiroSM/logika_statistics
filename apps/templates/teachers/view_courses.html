@@ -18,8 +18,12 @@
                         <div class="row align-items-center">
                             <div class="col-md-12">
                                 <div class="page-header-title">
-                                    <h5 class="m-b-10"> </h5>
+                                    <h5 class="m-b-10">Перегляд курсів</h5>
                                 </div>
+                                <ul class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="{% url 'view_courses' %}">Курси</a></li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -32,11 +36,26 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h5>Перегляд курсів</h5>
-                                    <a href="{% url 'view_courses' %}?type=all" class="btn btn-{% if course_type != 'all' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Всі курси</a>
-                                    <a href="{% url 'view_courses' %}?type=unknown" class="btn btn-{% if course_type != 'unknown' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Невідомі</a>
-                                    <a href="{% url 'view_courses' %}?type=programming" class="btn btn-{% if course_type != 'programming' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Програмування</a>
-                                    <a href="{% url 'view_courses' %}?type=english" class="btn btn-{% if course_type != 'english' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Англійська</a>
-                                    <a href="{% url 'view_courses' %}?type=other" class="btn btn-{% if course_type != 'other' %}outline-{%endif%}primary" title="" data-toggle="tooltip" data-original-title="btn btn-primary" aria-describedby="Всі курси">Інші</a>
+                                    <a href="{% url 'view_courses' %}?type=all"
+                                        class="btn btn-{% if course_type != 'all' %}outline-{%endif%}primary" title=""
+                                        data-toggle="tooltip" data-original-title="btn btn-primary"
+                                        aria-describedby="Всі курси">Всі курси</a>
+                                    <a href="{% url 'view_courses' %}?type=unknown"
+                                        class="btn btn-{% if course_type != 'unknown' %}outline-{%endif%}primary"
+                                        title="" data-toggle="tooltip" data-original-title="btn btn-primary"
+                                        aria-describedby="Всі курси">Невідомі</a>
+                                    <a href="{% url 'view_courses' %}?type=programming"
+                                        class="btn btn-{% if course_type != 'programming' %}outline-{%endif%}primary"
+                                        title="" data-toggle="tooltip" data-original-title="btn btn-primary"
+                                        aria-describedby="Всі курси">Програмування</a>
+                                    <a href="{% url 'view_courses' %}?type=english"
+                                        class="btn btn-{% if course_type != 'english' %}outline-{%endif%}primary"
+                                        title="" data-toggle="tooltip" data-original-title="btn btn-primary"
+                                        aria-describedby="Всі курси">Англійська</a>
+                                    <a href="{% url 'view_courses' %}?type=other"
+                                        class="btn btn-{% if course_type != 'other' %}outline-{%endif%}primary" title=""
+                                        data-toggle="tooltip" data-original-title="btn btn-primary"
+                                        aria-describedby="Всі курси">Інші</a>
                                 </div>
                                 <div class="card-block px-0 py-3">
                                     <div class="table-responsive">
@@ -55,10 +74,12 @@
                                                     </td>
                                                     <td>
                                                         <div class="btn-group mb-2 mr-2">
+
                                                             <button class="btn btn-warning dropdown-toggle"
                                                                 type="button" data-toggle="dropdown"
                                                                 aria-haspopup="true" aria-expanded="false">Напрям:
                                                                 {{course.get_course_type_display}}</button>
+                                                            {% if user_group in change_access %}
                                                             <div class="dropdown-menu" x-placement="bottom-start"
                                                                 style="position: absolute; transform: translate3d(0px, 42px, 0px); top: 0px; left: 0px; will-change: transform;">
                                                                 <a class="dropdown-item"
@@ -68,8 +89,10 @@
                                                                 <a class="dropdown-item"
                                                                     href="{% url 'update-course'%}?type=business&course_id={{course.id}}&value=other">Інше</a>
                                                             </div>
+                                                            {% endif %}
                                                         </div>
                                                     </td>
+                                                    {% if user_group in change_access %}
                                                     {% if course.is_active %}
                                                     <td>
                                                         <a href="{% url 'update-course'%}?type=status&course_id={{course.id}}&value=false"
@@ -81,6 +104,22 @@
                                                             class="btn btn-square btn-success">Увімкнути</a>
                                                     </td>
                                                     {% endif %}
+                                                    {% else %}
+                                                    {% if course.is_active %}
+                                                    <td>
+                                                        <a href="" class="btn btn-square btn-danger">Увімкнений</a>
+                                                    </td>
+                                                    {% else %}
+                                                    <td>
+                                                        <a href="" class="btn btn-square btn-success">Вимкнений</a>
+                                                    </td>
+                                                    {% endif %}
+                                                    {% endif %}
+                                                    <td>
+                                                        <a href="{% url 'view-course-lessons' course.id %}"
+                                                            class="btn btn-primary " type="button" aria-haspopup="true"
+                                                            aria-expanded="false">Переглянути уроки</a>
+                                                    </td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
