@@ -1,5 +1,6 @@
 from django.db import models
 from apps.home.models import GlobalGroup
+from django.contrib.auth.models import User
 
 COURSE_TYPES = (
     ("english", "Англійська"),
@@ -28,7 +29,7 @@ class TeacherGroup(models.Model):
     group_course = models.CharField(max_length=256)
     group_lesson_count = models.IntegerField(default=36)
     group_location = models.CharField(max_length=256)
-    start_date = models.DateField()
+    start_date = models.DateField(blank=True, null=True)
     group_lessons = models.ManyToManyField('Lesson', blank=True)
 
 
@@ -36,8 +37,7 @@ class Teacher(models.Model):
     full_name = models.CharField(max_length=100)
     is_english = models.BooleanField(default=False)
     is_programming = models.BooleanField(default=False)
-    tutor = models.CharField(max_length=100, null=True, blank=True)
-    location = models.CharField(max_length=100, null=True, blank=True)
+    tutors = models.ManyToManyField(User, blank=True)
 
     def __str__(self):
         return self.full_name
@@ -57,13 +57,15 @@ class CourseLesson(models.Model):
         return f"{self.lesson_course}: {self.title}"
 
 class Lesson(models.Model):
-    lesson_datetime = models.DateTimeField()
+    lesson_datetime = models.DateTimeField(null=True, blank=True)
     lesson_status = models.CharField(max_length=256, choices=LESSON_STATUSES)
+    lesson_number = models.IntegerField()
+    score = models.CharField(max_length=256, null=True, blank=True, default="0.00")
     related_course_lesson = models.ForeignKey(
         to=CourseLesson, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return self.title
+        return related_course_lesson.title
 
 
 class Course(models.Model):

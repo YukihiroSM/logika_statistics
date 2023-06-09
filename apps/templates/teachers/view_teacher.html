@@ -1,0 +1,216 @@
+{% extends 'layouts/base.html' %}
+{% block title %} {{ teacher.full_name }} {% endblock %}
+{% block stylesheets %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    .scrollable-row {
+        overflow-x: scroll;
+        white-space: nowrap;
+    }
+
+    .scrollable-row .card {
+        display: inline-block;
+        width: 350px;
+        margin-right: 10px;
+        
+
+    }
+    p.card-title{
+        word-wrap: break-word;
+    }
+    .card-title .card-body{
+        word-wrap: break-word;
+    }
+</style>
+
+
+{% endblock stylesheets %}
+{% block content %}
+{% load tz %}
+{% load get_item_lesson %}
+<!-- [ Main Content ] start -->
+<div class="pcoded-main-container">
+    <div class="pcoded-wrapper">
+
+        <div class="pcoded-content">
+            <div class="pcoded-inner-content">
+                <div class="page-header">
+                    <div class="page-block">
+                        <div class="row align-items-center">
+                            <div class="col-md-12">
+                                <div class="page-header-title">
+                                    <h5 class="m-b-10">{{teacher.full_name}}</h5>
+                                </div>
+                                <ul class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="{% url 'view-teachers' %}">Викладачі</a></li>
+                                    <li class="breadcrumb-item"><a
+                                            href="{% url 'view-teacher' teacher.id %}">{{teacher.full_name}}</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-body">
+                    <div class="page-wrapper">
+                        <!-- [ Main Content ] start -->
+
+                        <div class="row">
+                            <div class="col-sm-8">
+
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link text-uppercase" id="home-tab" data-toggle="tab"
+                                            href="#home" role="tab" aria-controls="home" aria-selected="true">Дані</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-uppercase  active show" id="profile-tab" data-toggle="tab"
+                                            href="#profile" role="tab" aria-controls="profile"
+                                            aria-selected="false">Групи</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-uppercase" id="contact-tab" data-toggle="tab"
+                                            href="#contact" role="tab" aria-controls="contact"
+                                            aria-selected="false">Розклад</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="myTabContent">
+                                    <div class="tab-pane fade" id="home" role="tabpanel"
+                                        aria-labelledby="home-tab">
+                                        <p class="mb-0">
+                                            <h1> Скоро цей розділ теж з'явиться!</h1>
+                                        </p>
+                                    </div>
+                                    <div class="tab-pane fade active show" id="profile" role="tabpanel"
+                                        aria-labelledby="profile-tab">
+                                        <div class="accordion" id="accordionExample">
+                                            {% for location in locations %}
+                                            <h1>{{location}}</h1>
+
+                                            {% for group in groups %}
+                                            {%if group.group_location == location%}
+
+                                            <div class="card">
+                                                <div class="card-header" id="heading{{group.id}}">
+                                                    <h5 class="mb-0"><a href="#!" data-toggle="collapse"
+                                                            data-target="#collapse{{group.id}}" aria-expanded="false"
+                                                            aria-controls="collapse{{group.id}}"
+                                                            class="">{{group.group_title}}</a></h5>
+                                                            <br>
+                                                            <h6> {{group.group_course}}</h6>
+                                                            <h6>Посилання на ЛМС: <a href="https://lms.logikaschool.com/group/view/{{group.group_lms_id}}" target="_blank">{{group.group_lms_id}}</a></h6>
+                                                    <button type="button" class="btn btn-warning">Уроків до наступного
+                                                        ВУ <span class="badge badge-light">4</span></button>
+                                                    <button type="button" class="btn btn-info">Уроків до наступних БЗ
+                                                        <span class="badge badge-light">2</span></button>
+                                                    <button type="button" class="btn btn-success">Уроків до релізу <span
+                                                            class="badge badge-light">15</span></button>
+                                                </div>
+                                                <div id="collapse{{group.id}}" class="card-body collapse show"
+                                                    aria-labelledby="heading{{group.id}}"
+                                                    data-parent="#accordion" style="">
+                                                    <div class="container">
+                                                        <div class="scrollable-row" data-scroll-to-index="{{closest_lessons|get_item_lesson:group.group_lms_id}}">
+                                                            {% for lesson in group.group_lessons.all %}
+                                                            <div class="card"
+                                                                style="background-color: {% if lesson.related_course_lesson.lesson_type == 'regular' %} rgb(231, 231, 231) {% elif lesson.related_course_lesson.lesson_type == 'open_lesson' %}rgb(92, 158, 109){% elif lesson.related_course_lesson.lesson_type == 'parents_meeting' %}rgb(202, 207, 76){% endif %};">
+                                                                <div class="card-body">
+                                                                    <div style="position: absolute; top: 0; right: 0; width: 100px; text-align:right; padding:5px;">
+                                                                        {{lesson.score}}
+                                                                      </div>
+                                                                    <p>{% if lesson.related_course_lesson.lesson_type == 'regular' %} Звичайний урок {% elif lesson.related_course_lesson.lesson_type == 'open_lesson' %}Відкритий урок{% elif lesson.related_course_lesson.lesson_type == 'parents_meeting' %}Батьківські збори{% endif %}</p>
+                                                                    <p class="card-title"><b>{{lesson.lesson_number}}. {{lesson.related_course_lesson.title}}</b></p>
+                                                                    <p class="card-text">{{lesson.lesson_datetime|date:'Y-m-d H:i'}}</p>
+                                                                </div>
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+
+                                            {% endif %}
+                                            {%endfor%}
+
+                                            {%endfor%}
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="contact" role="tabpanel"
+                                        aria-labelledby="contact-tab">
+                                        <p class="mb-0"><h1> Скоро цей розділ теж з'явиться!</h1></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <div class="card">
+                                    <div class="card-block">
+                                        <div class="d-flex align-items-center justify-content-center flex-column">
+                                            <div class="w-50 p-3">
+                                                <img src="{{ASSETS_ROOT}}images/profile.png" alt="profile image"
+                                                    class="img-fluid rounded-circle">
+                                            </div>
+                                            <div class="text-center">
+                                                <h4 class="font-weight-bold h6">
+                                                    {{teacher.full_name}}
+                                                </h4>
+                                            </div>
+                                        </div>
+
+                                        <div class="small font-weight-light mt-4 text-center text-muted">
+                                            <p>
+
+                                                <br />
+                                            </p>
+                                        </div>
+                                        <!-- <div class="d-flex justify-content-center align-items-center">
+                                            <a href="#" class="h6 text-muted d-block m-1"><i
+                                                    class="icon feather icon-facebook"></i></a>
+                                            <a href="#" class="h6 text-muted d-block m-1"><i
+                                                    class="icon feather icon-twitter"></i></a>
+                                            <a href="#" class="h6 text-muted d-block m-1"><i
+                                                    class="icon feather icon-instagram"></i></a>
+
+                                        </div> -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- [ Main Content ] end -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- [ Main Content ] end -->
+{% endblock content %}
+{% block javascripts %}
+<script>
+    // Add event listener when the page finishes loading
+    window.addEventListener("DOMContentLoaded", function() {
+        // Get all scrollable-row containers
+        var scrollableRows = document.querySelectorAll(".scrollable-row");
+
+        // Iterate over each scrollable-row
+        scrollableRows.forEach(function(row) {
+            // Get the item index to scroll to from the data attribute
+            var scrollToIndex = parseInt(row.dataset.scrollToIndex);
+
+            // Get all the cards within the scrollable-row
+            var cards = row.querySelectorAll(".card");
+
+            // Check if the scrollToIndex is within a valid range
+            if (scrollToIndex >= 0 && scrollToIndex < cards.length) {
+                // Scroll to the item at scrollToIndex with a delay of 2 seconds
+                setTimeout(function() {
+                    row.scrollLeft = cards[scrollToIndex].offsetLeft;
+                }, 2000);
+            }
+        });
+    });
+</script>
+
+{% endblock javascripts %}

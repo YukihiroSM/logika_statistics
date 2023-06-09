@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
-from apps.teachers.models import Course, CourseLesson
+from apps.teachers.models import Course, CourseLesson, Teacher, TeacherGroup
 from apps.teachers import utils
+from django.contrib.auth.models import User, Group
+from datetime import datetime
 
 
 def view_courses(request):
@@ -52,3 +54,46 @@ def update_lesson(request):
 
     lesson.save()
     return redirect(to="view-course-lessons", pk=course_id)
+
+
+def view_teachers(request):
+    teachers = Teacher.objects.all().order_by("full_name")
+    possible_tutors = User.objects.filter(groups__name="tutor").all()
+    context = {
+        "teachers": teachers,
+        "user_group": utils.user_group(request),
+        "change_access": ["admin", "methodologist", "regional", "tutor"],
+        "tutors": possible_tutors
+    }
+    return render(request, 'teachers/view_teachers.html', context)
+
+
+def update_teacher(request):
+    teacher_id, value, type = request.GET.get("teacher_id"), request.GET.get("value"), request.GET.get("type")
+    if type == "tutor":
+        teacher = Teacher.objects.get(id=teacher_id)
+        teacher.tutor = value
+        teacher.save()
+    return redirect(to="view-teachers")
+
+
+def view_teacher(request, pk):
+    teacher = Teacher.objects.get(id=pk)
+    groups = TeacherGroup.objects.filter(teacher=teacher).all().order_by("group_location")
+    locations = TeacherGroup.objects.filter(teacher=teacher).values_list("group_location", flat=True).distinct()
+    closest_lessons = {}
+    for group in groups:
+        now_time = datetime.now()
+        closest_lesson_number = group.group_lessons.filter(lesson_datetime__gte=now_time).all().order_by("lesson_datetime")
+        if closest_lesson_number:
+            closest_lessons[group.group_lms_id] = closest_lesson_number[0].lesson_number
+        else:
+            closest_lessons[group.group_lms_id] = -1
+    context = {
+        "teacher": teacher,
+        "groups": groups,
+        "user_group": utils.user_group(request),
+        "locations": locations,
+        "closest_lessons": closest_lessons,
+    }
+    return render(request, 'teachers/view_teacher.html', context)

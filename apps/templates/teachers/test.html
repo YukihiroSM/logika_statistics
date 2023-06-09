@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Horizontal Scrollable Row with Widgets</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .scrollable-row {
+            overflow-x: scroll;
+            white-space: nowrap;
+        }
+        
+        .scrollable-row .card {
+            display: inline-block;
+            width: 300px;
+            margin-right: 10px;
+            
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Horizontal Scrollable Row with Widgets</h2>
+        <div class="scrollable-row">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Widget 1</h5>
+                    <p class="card-text">Content of Widget 1</p>
+                </div>
+            </div>
+            <div class="card open-lesson">
+                <div class="card-body">
+                    <h5 class="card-title">Widget 2</h5>
+                    <p class="card-text">Content of Widget 2</p>
+                </div>
+            </div>
+            <div class="card" style="background-color: rgb(231, 231, 231);">
+                <div class="card-body">
+                    <h5 class="card-title">Widget 3</h5>
+                    <p class="card-text">Content of Widget 3</p>
+                </div>
+            </div>
+            <div class="card" style="background-color: aquamarine;">
+                <div class="card-body">
+                    <h5 class="card-title">Widget 3</h5>
+                    <p class="card-text">Content of Widget 3</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Widget 3</h5>
+                    <p class="card-text">Content of Widget 3</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Widget 3</h5>
+                    <p class="card-text">Content of Widget 3</p>
+                </div>
+            </div>
+            <!-- Add more widgets as needed -->
+        </div>
+    </div>
+</body>
+</html>
