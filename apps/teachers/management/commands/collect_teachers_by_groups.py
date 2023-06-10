@@ -29,8 +29,6 @@ class Command(BaseCommand):
             group_course = row[10]
             group_office = row[12]
             course_object = Course.objects.filter(title=group_course).first()
-            if course_object and not course_object.is_active:
-                continue
             print(f"Processing group: {group_title}, {group_course}, {group_teacher}")
             # get teacher
             teacher_object = Teacher.objects.filter(
